@@ -75,10 +75,6 @@
       ]
     }
   },
-  "logo": {
-    "light": "/logo/ofsec-light.svg",
-    "dark": "/logo/ofsec-dark.svg"
-  },
   "navbar": {
     "links": [
       {
