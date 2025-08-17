@@ -68,13 +68,8 @@
           "icon": "home"
         },
         {
-          "anchor": "Blog",
-          "href": "https://blog.visec.net.tr",
-          "icon": "newspaper"
-        },
-        {
           "anchor": "GitHub",
-          "href": "https://github.com/enayproject",
+          "href": "https://github.com/Enay-Project",
           "icon": "github"
         }
       ]
