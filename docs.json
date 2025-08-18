@@ -41,12 +41,12 @@
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "ViSec",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "ViSec",
             "pages": [
-              "api/introduction"
+              "Visec/Baslangic"
             ]
           },
           {
