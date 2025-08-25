@@ -1,0 +1,66 @@
+---
+title: "Tor Kullan"
+description: ":S "
+---
+
+Anonimlik, gizlilik ve güvenlik. bunların hepsinin iyi şeyler olduğunu biliyorsunuz. Ancak, hepimizin tam olarak hemfikir olamadığı konu, birinin nerede bittiği ve diğerinin nerede başladığıdır.
+
+Benim görüşüme göre güvenlik, diğer ikisini de kapsayan daha genel bir terimdir. Sizi daha anonim  yapan herşey, aynı zamanda sizi daha güvenli de yapar.
+
+Eğer sizi anonim hale getiriyorsa, kelimelerin tanımı gereği sizi daha güvenli hale de getirmelidir. Tor onion hizmetlerinin anonimlik olarak yorumlanamayacak faydaları olduğunu size ikna etmeye çalışacağım.
+
+### SetUp
+
+Bunun çerçevesi iki senaryodan oluşur. Ya (1) TLS (HTTPS) kullanarak normal web'de bir web sitesini ziyaret edersiniz ya da (2) normal bir onion hizmetini ziyaret edersiniz. Her iki senaryoda da her şey tipik/mantıklı bir şekilde kurulmuştur. \
+\
+Varsayımlarım şunlardır:
+
+Onion servisi standart bir 6 hop’luk yapıdadır. Anonim olmayan 3 hop’luk tasarım kullanılmamıştır.\
+Kullanıcıların ve sunucuların Tor istemcileri, uç nokta yazılımlarına oldukça yakındır bu nedenle burada tartışma amacıyla onları uç nokta yazılımı gibi düşünebiliriz.
+
+Normal web siteleri TLS’i tipik şekilde kullanır. Güvenilir bir Sertifika Otoritesi (CA) tercih edilir, makul şifreleme yöntemleri seçilir ve TLS 1.2 veya 1.3 kullanılır.\
+DNSSEC kullanılmaz. Aslında neredeyse kimse kullanmaz, kullansa da tam olarak doğru uygulanmaz.\
+DNS over HTTPS kullanılmaz. Kullanılsa bile, TLS’e yönelik saldırılara ve DNS sunucusunun sonuçları değiştirmesi ya da sansürlemesine karşı savunmasızdır.
+
+TLS kütüphanelerinde veya ilgili Tor kodlarında güvenliği yok eden bir hata bulunmamaktadır.\
+Şifreleme algoritmaları kırılmış değildir. AES güvenlidir, TLS istemcisi/sunucusu ne üzerinde anlaşırsa o da güvenlidir. Kriptografi burada zayıf halka değildir.
+
+Tor onion servisleri yalnızca HTTP sunucuları ile sınırlı değildir (IRC, SMTP veya herhangi bir TCP tabanlı servis olabilir), ancak şimdilik HTTP sunucularına odaklanacağız.
+
+## Tor’un Anonimlik Sağlayan Faydaları
+
+- Kullanıcı ile sunucu arasındaki tünelin 6’da 5’i kullanıcıyı bilmez. Burada sadece relay’lerden değil, aralarındaki bağlantılardan da bahsediyorum.
+- Benzer şekilde, yolun 6’da 5’i hedefi de bilmez.
+  - Onion servisinin guard düğümü, trafik desenlerinden onion servisi için guard olduğunu anlayabilir. Guard kendi IP adresini bilir, ancak hangi onion servisine guard’lık yaptığını bilmez. Bu da kimsenin hedef onion adresini bilmediği anlamına gelir.
+  - Ancak guard zaten onion adresini biliyorsa (örneğin popüler, herkese açık bir adresse), bir timing attack ile gerçekten o servisin guard’ı olduğunu doğrulayabilir. Böylece tekrar “yolun 6’da 5’i hedefi bilmiyor” durumuna dönmüş oluruz.
+- Yolun %100’ü hem kullanıcıyı hem de kullanıcının ziyaret ettiği sayfaları birlikte bilmez.\
+  buda tam anlamı ile anonimlik sağlamaktadır.
+- Bir zırvalık varya hani, vpn e bağlansan bile modemin geçmişi seni ele verir, lan yarram o zaman makine öğrenimi tor ağına bağlı herkesi hop diye listeler tutuklatırdı.\
+  Deminde anlattığım gibi tor sayesinde kişiler hem kullanıcıyı hemde hedefi kestiremez, modemin logu seni sadece başka bir ip ye bağlı olduğunu görür, o ip nereye bağlı işte onu kestiremez.\
+  Çünkü 6 farklı ip ye bağlı bir sistemin içindesin.
+
+## Tor’un Anonimlik Dışındaki Faydaları
+
+- **DNS hijacking imkânsızdır.** Çünkü DNS hiç kullanılmaz.
+- Tor’un kullandığı DNS benzeri süreç güvenlidir (onion’un Introduction Point’lerini DHT’de bul, bir IP’ye bağlan, onion’a hangi Rendezvous Point’in kullanılacağını bildir, iki taraf da RP’ye bağlanır). Hiç kimse DHT’de hangi onion’un arandığını bilmez; cevabı tutan relay bile bilmez. DNS buna kıyasla gülünç derecede güvensizdir. DNS sunucusu her şeyi bilir (kullanıcı, soru, cevap). Kullanıcı ile sunucu arasındaki herhangi bir güvensiz bağlantı noktası her şeyi ifşa eder. DNS sunucusu istediği zaman yanıtları sahteleyebilir ya da sansürleyebilir.
+- **BGP hijacking imkânsızdır.** Tor istemcisinin bir relay veya onion servisiyle yaptığı her etkileşim kimlik doğrulamalıdır. Böylece gerçekten istediğin relay/onion ile iletişimde olduğunu bilirsin.
+- **MITM saldırıları imkânsızdır.** Normal bir siteye girerken, güvendiğin yüzlerce CA’den hiçbirinin yanlış ya da kötü niyetli şekilde sertifika vermediğini varsaymak zorundasın. Kurumsal bir firewall’un trafiği çözmek için araya girmesi mümkün değildir. Tor istemcileri arasında araya girilebilecek hiçbir nokta yoktur. TLS bunu denemeye çalışır ve genelde başarılı olur. Tor ise garanti eder.
+
+Bir onion servisine başarıyla bağlandığını görüyorsan, gerçekten bağlanmışsındır ve bunu güvenli şekilde yapmışsındır. TLS böyle bir garanti sunmaz. Güncel tarayıcıların otomatik filtreleme sayesinde tıkladığın bir bağlantı güvensizse tarayıcın ya uyarı verir yada siteyi hiç açmaz. Eskiden tarayıcılar bu kadar güvenli değilken tıkladığın bir link senin cihazına senden habersiz dosya atabiliyor, komut çalıştırabiliyordu.
+
+## Tor vs TLS
+
+> “Enay, sen aslında Transport Layer Security’nin yeniden implementasyonunu anlatıyorsun.”
+
+Hayır. Yukarıda uzun uzun anlattıklarımı tekrar edeyim:
+
+- TLS, normal bir web sitesine bağlanma sürecinin her noktasında kullanılmaz. Tor ise tüm süreci güvence altına alır.
+- TLS bağlantıyı güvenli yapmak için elinden geleni yapar, ama Tor garanti eder. TLS çalışıyor diye inanabilmek için varsayımlara dayanmak zorundasın. Tor ise daha az varsayıma ihtiyaç duyar, bu yüzden daha güvenlidir.
+
+Tor onion servislerine erişim, TLS üzerinden herhangi bir şeye erişmekten daha güvenli olacak şekilde tasarlanmıştır.
+
+TLS yıllar içinde yamalarla ayakta tutulur: Certificate Transparency, HSTS, OCSP… Bunlar kesinlikle TLS’i daha iyi ve güvenli hale getirir. Ama Tor hâlâ daha güvenlidir. Her onion servisi güvenlidir ve daha az varsayım yaparsın.
+
+Ziyaret edeceğin bir sonraki sitenin HSTS kullanıp kullanmadığını bilemezsin. Bağlandıktan sonra kontrol edip HSTS kullanılmadığını görürsen, bu saldırıya mı işaret eder yoksa site gerçekten HSTS kullanmıyor mudur?
+
+Tarayıcın CT loglarını kontrol ediyor mu? Ediyorsa, sertifikayı CT loglarında bulamadığında nasıl tepki veriyor? CT sorgusunun güvenli olduğunu varsayıyor musun? İletişimde bulunduğun tarafların yanlış davranmadığından emin misin? CT log sorguların kaydedilip sana bağlanıyor mu?
