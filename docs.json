@@ -38,6 +38,12 @@
               "Visec/DarkWeb/forumlar",
               "Visec/DarkWeb/tor"
             ]
+          },
+          {
+            "group": "Genel",
+            "pages": [
+              "Visec/Web3/Sonic"
+            ]
           }
         ]
       }
