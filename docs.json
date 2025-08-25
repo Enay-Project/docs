@@ -17,25 +17,8 @@
             "group": "Başlangıç",
             "pages": [
               "index",
-              "quickstart",
-              "setup"
-            ]
-          },
-          {
-            "group": "Güvenlik Araştırmaları",
-            "pages": [
-              "research/web",
-              "research/mobile",
-              "research/crypto"
-            ]
-          },
-          {
-            "group": "Araçlar & Metodolojiler",
-            "pages": [
-              "tools/burp",
-              "tools/gdb",
-              "tools/foundry",
-              "tools/reversing"
+              "misyon",
+              "yolhar"
             ]
           }
         ]
@@ -44,17 +27,16 @@
         "tab": "ViSec",
         "groups": [
           {
-            "group": "ViSec",
+            "group": "Genel",
             "pages": [
               "Visec/Baslangic"
             ]
           },
           {
-            "group": "Examples",
+            "group": "Dark Web",
             "pages": [
-              "api/examples/get",
-              "api/examples/post",
-              "api/examples/delete"
+              "Visec/DarkWeb/forumlar",
+              "Visec/DarkWeb/tor"
             ]
           }
         ]
