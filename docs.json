@@ -40,7 +40,7 @@
             ]
           },
           {
-            "group": "Genel",
+            "group": "Web3",
             "pages": [
               "Visec/Web3/Sonic"
             ]
@@ -66,13 +66,13 @@
   "navbar": {
     "links": [
       {
-        "label": "Destek",
+        "label": "İletişim",
         "href": "mailto:info@visec.net.tr"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
+      "label": "Anasayfa",
       "href": "https://ofsec.visec.net.tr"
     }
   },
