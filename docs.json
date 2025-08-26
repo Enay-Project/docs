@@ -11,7 +11,7 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Anasayfa",
         "groups": [
           {
             "group": "Başlangıç",
@@ -36,7 +36,8 @@
             "group": "Dark Web",
             "pages": [
               "Visec/DarkWeb/forumlar",
-              "Visec/DarkWeb/tor"
+              "Visec/DarkWeb/tor",
+              "Visec/DarkWeb/safenet"
             ]
           },
           {
