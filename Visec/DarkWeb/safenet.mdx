@@ -1,0 +1,58 @@
+---
+title: "Güvenli İnternet"
+description: "Anonimlik öldü, onu biz öldürdük."
+---
+
+Güvenli internet denince aklıma bir siteye uğradığım zaman en temel olarak o sitenin bana zarar verememesi gelir. İnternet kavramı çok detaylı ve yoğun bir konu aslında, internet sadece web sitelerinden ibaret değil, bunun en önemli örneği telefonlarınızda ki uygulamalar, ip kameralarınız, tek tuşla evi yönetebilen akıllı ev sistemleri vesaire. Hepsinde her geçen gün bir zafiyet bulunuyor ve o zafiyeti önlemek için bir yama veya ek sertifikalar kullanılıyor. Bugün anlatacağım konu işin zafiyet kısmından çok anonimlik üzerine olacak.
+
+Gündelik kullanıdığın internette, herhangibi bir ek güvenlik önlemi kullanmadan düz kendi ip, bilgisayarın ve google tarayıcın ile **hiç izlenmediğinimi zannediyorsun**? Whatsappta arkadaşına "Kanka spora yazıldım protein tozu alıcam" dediğin zaman karşına protein tozu reklamları çıkmıyormu? En basitinden googleye sırf merak edip ekran kartı aratınca karşına ekran kartı reklamları çıkmıyormu? **İzleniyorsun** evet ve bunu legal olarak engellemenin bir yolu yok **sistemi ele geçirdiler**, tekelleştiler ve bunu göstermemek için kendilerine yapay rakip çıkartıp rakibin çalışan maaşlarını bile kendi ceplerinden ödüyorlar [bknz](https://blog.ssuiteoffice.com/articles/general/did-usaid-turn-firefox-into-a-surveillance-machine.htm)<Tooltip tip="">.</Tooltip>
+
+# Güvenli iletişimi Nasıl Sağlarım
+
+Güvenli iletişim dediğim şey aslında server side odaklı iletişim sistemlerine alternatifler sunmak olacak.\
+Whatsapp, instagram gibi uygulamalar sence senin mesajlarını koruyabiliyormu? Koruma değil senin bildiğin verilerini satıyor.
+
+## Client Server
+
+![Ekrangörüntüsü2025 08 26014731 Pn](/images/Ekrangörüntüsü2025-08-26014731.png)
+
+Yukarıdaki görseldeki gibi, karşı tarafa attığın mesaj doğrudan karşıya gitmiyor, önce sunucuya gidip sonrasında karşıya geçiyor. Aklına gelebilecek tüm mesajlaşma uygulamaları bu sistemi kullanıyor. \
+Alacağın ve göndereceğin mesaj sunucuya gider, sonrasında senin veya karşı tarafın ip sine düşer, biz buna client server tabanlı iletişim diyoruz. Bu iletişim türünde mesajların anonim değildir çünkü tüm mesajların sunucu ile yani örneğin whatsapp kullanıyorsan metaya gider, metada bunu reklam şirketlerine satar google ads gibi. Senden para kazanamıyorsa senin verinden kazanır olay bu.\
+Bu altyapıyı kullanan şirketlerin absürt bir vaadi var "Mesajlar şifrelidir güvenliğinizi garanti ediyoruz", yarrak garanti ediyor, mesajlı mesaj dediği şey 256hashı gibi düşün, evet dışardan çözmesi imkansız gibidir ama içeride o hashın çözüm algoritması kimdeyse top ondadır tüm mesajları o hash ile çözer.\
+Anlayacağın "Mesajlar şifrelidir" denilen şey "sana ve senin gibilere şifreli bana değil" demektir.
+
+## P2P
+
+<img
+  src="/images/Ekrangörüntüsü2025-08-26014915.png"
+  alt="Ekrangörüntüsü2025 08 26014915 Pn"
+  title="Ekrangörüntüsü2025 08 26014915 Pn"
+  style={{ width:"94%" }}
+/>
+
+P2p dediğimiz şey ortadaki serveri kaldırıp doğrudan iletişim kurmaktır. Aktif olarak faal p2p hizmeti veren**tox, jami, briar**  var bunlar ama bunlarda karşı taraf ile iletişim kurarken ip adresiniz ve metadatanız ifşa olur, bu bilgilerden yola çıkarak metadata ile dosyamı gönderdin mesajmı gönderdin ayrımı yapılabilir veya ip adresin ile adresin ifşa olabilir, mesajlarını tox, jami vs şifrelesede şifreleme yalnızca içeriğini korur. Yani gönderdiğin metni, dosyayı veya konuşmayı üçüncü bir kişi okuyamaz. Fakat şifreleme **kiminle, ne zaman, ne kadar süre konuştuğunu** gizlemez.\
+İletişim kurduğun taraf güvenilir değilse karşı taraf senin IP adresini gördüğü için konum bilgine ulaşabilir. Bağlantı sıklığın ve saatlerin üzerinden kullanım alışkanlıkların çıkarılabilir. P2P iletişimde asıl risk, içerikten çok **metadata** ve **IP ifşasıdır**. Tor ağı üzerinden bağlanmak bu bilgileri gizler.
+
+<Info>
+  Discord sesli sohbetleride eskiden p2p sistemi kullanırdı.
+</Info>
+
+## Federated
+
+<img
+  src="/images/Ekrangörüntüsü2025-08-26014636.png"
+  alt="Ekrangörüntüsü2025 08 26014636 Pn"
+  title="Ekrangörüntüsü2025 08 26014636 Pn"
+  style={{ width:"85%" }}
+/>
+
+Bu iletişim tamamen merkeziyetsizdir, ben örnek olarak 2 tane server gösterdim ama bu sayı 2 den fazlaya çıkabiliyor. Birden çok sunucu var ama yine de her kullanıcı bir sunucuya bağlı. P2P gibi doğrudan değil. Temel amaç benim ile karşımda ki kişinin bir nodeye bağlanması ve oradan iletişim kurmamız. Birden fazla nodenin aynı protokole bağlanması sunucuların iletişim kurması durumudur kısaca. Örneğin sen bir federated servise üye olursun, arkadaşın başka bir sunucuda olabilir.\
+Sen mesaj attığında
+
+- Önce kendi sunucun (`A Serveri`) mesajı alır.
+- Daha sonra protokol (ör. **ActivityPub**) üzerinden `B Serveri`ne iletir.
+- `B Serveri` mesajı arkadaşına ulaştırır.
+- Her iki sunucu da birbirine güvenlik sertifikaları ve protokollerle bağlıdır.
+
+Bu sistemlere örnek olarak e posta sistemleri örnektir, sen gmail hesabı oluşturarak bir hotmail hesabına mail atabilirsin mesela ama bunlar tabiki anonim değil, mail servisin seni tanır ve bilgilerini paylaşmaktan çekinmez.\
+En kusursuz anonimlik için **XMPP** Kullanabilirsin, istediğin sunucudan hesap açabilirsin, hatta kendi XMPP sunucunu kurabilirsin.**OTR**  veya **OMEMO** şifrelemesi ile oldukça anonim kullanılabilir ve tor üzerinden bu sistemi kullanırsan **anonimliğini maksimuma çekersin.**
