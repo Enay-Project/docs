@@ -48,6 +48,23 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Tools",
+        "groups": [
+          {
+            "group": "Bilgilendirme",
+            "pages": [
+              "Tools/bilgilendirme"
+            ]
+          },
+                    {
+            "group": "Cracking",
+            "pages": [
+              "Tools/cracking"
+            ]
+          }
+        ]
       }
     ],
     "global": {
