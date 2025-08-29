@@ -56,3 +56,75 @@ Sen mesaj attığında
 
 Bu sistemlere örnek olarak e posta sistemleri örnektir, sen gmail hesabı oluşturarak bir hotmail hesabına mail atabilirsin mesela ama bunlar tabiki anonim değil, mail servisin seni tanır ve bilgilerini paylaşmaktan çekinmez.\
 En kusursuz anonimlik için **XMPP** Kullanabilirsin, istediğin sunucudan hesap açabilirsin, hatta kendi XMPP sunucunu kurabilirsin.**OTR**  veya **OMEMO** şifrelemesi ile oldukça anonim kullanılabilir ve tor üzerinden bu sistemi kullanırsan **anonimliğini maksimuma çekersin.**
+
+**sistemi az buçuk çözdün, şimdi gel mesajlaşma yollarına gelelim**
+
+## PGP
+
+<img
+  src="/images/resim_2025-08-29_024651062.png"
+  alt="Resim 2025 08 29 024651062 Pn"
+  title="Resim 2025 08 29 024651062 Pn"
+  style={{ width:"74%" }}
+/>
+
+PGP kriptografik şifreleme yöntemi ile iletişim kurmaktır, anonimlik budur ustam. Fake bir mail ile keyserver ve key üretiimlerini bilen birisi çok rahat işi çözer. **Public key**, herkesle paylaşılır. Sana mesaj göndermek isteyen kişi bu anahtarı kullanarak mesajını şifreler. **Private key** ise sadece sende bulunur. Sana şifrelenmiş mesajları açabilmek için gereklidir.
+
+Örneğin\
+Alıcı, kendi **Public Key** ini yayımlar.
+
+- Gönderen, mesajı bu public key ile şifreler.
+- Mesaj yolda yakalansa bile çözülemez, çünkü açmak için gerekli olan **private key** yalnızca alıcıdadır.
+- Alıcı mesajı alır ve Private Key ile şifreyi çözer.
+
+### Kurulum yapak zozik
+
+he hewal yapak, tüm linux dağıtımlarına kurulu geliyor eğer kurulu değilse komutla kur.
+
+```bash
+sudo apt install gnupg -y
+```
+
+<img
+  src="/images/resim_2025-08-29_025813941.png"
+  alt="Resim 2025 08 29 025813941 Pn"
+  title="Resim 2025 08 29 025813941 Pn"
+  style={{ width:"20%" }}
+/>
+
+<img
+  src="/images/Ekrangörüntüsü2025-08-29030210.png"
+  alt="Ekrangörüntüsü2025 08 29030210 Pn"
+  title="Ekrangörüntüsü2025 08 29030210 Pn"
+  style={{ width:"56%" }}
+/>
+
+Bu işlemlerden sonra O yazdıktan sonra şifre belirleyin ve haneye hayırlı olsun ustam.\
+aşşağıdaki komut ilede public keyini herkese açabilirsin 
+
+<img
+  src="/images/resim_2025-08-29_030541701.png"
+  alt="Resim 2025 08 29 030541701 Pn"
+  title="Resim 2025 08 29 030541701 Pn"
+  style={{ width:"55%" }}
+/>
+
+aşşağıdaki gibide mesaj gönderip mesaj çözebilirsin
+
+<img
+  src="/images/resim_2025-08-29_030823666.png"
+  alt="Resim 2025 08 29 030823666 Pn"
+  title="Resim 2025 08 29 030823666 Pn"
+  style={{ width:"91%" }}
+/>
+
+### [Cock.li](http://Cock.li)
+
+<img
+  src="/images/resim_2025-08-29_022043937.png"
+  alt="Resim 2025 08 29 022043937 Pn"
+  title="Resim 2025 08 29 022043937 Pn"
+  style={{ width:"82%" }}
+/>
+
+federated iletişim altyapısını kullanır, sistem yöneticisi mesajlarınızın okunmadığını, listelenmediğini ve paylaşılmadığını iddia ediyor. Gmail, hotmail, yahoo gibi ünlü mail servislerinde kara listededir hiçbir şekilde bunlarla iletişime geçemezsiniz. Bu servisin en iyi özelliği mail servisinizi kaliye thunderbird vs ile kurup, tor ağına bağlanıp, X.509 veya GPG ile mesajları iki kişi arasında şifreleyerek mail sunucusunun göremeyeceği şekilde iletişim kurabilirsiniz hatta mail loglarını sistemden indirip silebilirsiniz.
