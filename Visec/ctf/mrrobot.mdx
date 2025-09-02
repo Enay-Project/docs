@@ -12,13 +12,6 @@ description: " https://tryhackme.com/room/mrrobot"
 
 Öncelikle makineyi Nmap ile tarayıp açık portlarını görelim:
 
-<img
-  src="/images/image.png"
-  alt="image.png"
-  title="image.png"
-  style={{ width:"100%" }}
-/>
-
 ```bash
 export IP=10.10.181.6
 ```
@@ -36,8 +29,6 @@ PORT    STATE  SERVICE  REASON         VERSION
 ```bash
 gobuster dir -u http://10.10.108.126/ -w /usr/share/wordlists/dirb/common.txt
 ```
-
-![image.png](/images/image.png)
 
 ![Ekrangörüntüsü2025 09 02210745 Pn](/images/Ekrangörüntüsü2025-09-02210745.png)
 
@@ -57,7 +48,7 @@ Ve işte ilk anahtarımız:
 
 ![Resim 2025 09 02 211228270 Pn](/images/resim_2025-09-02_211228270.png)
 
- şifrelenmiş bir parola olabilecek bir base64 dizesi buldum
+şifrelenmiş bir parola olabilecek bir base64 dizesi buldum
 
 ```bash
 hydra -L fsocity.dic -p test 10.10.239.79 http-post-form "/wp-login/:log=^USER^&pwd=^PASS^&wp-submit=Log+In&redirect_to=http%3A%2F%2Fmrrobot.thm%2Fwp-admin%2F&testcookie=1:F=Invalid username"
@@ -207,5 +198,4 @@ cat key-3-of-3.txt
 2. Key `822c73956184f694993bede3eb39f959`
 3. Key `04787ddef27c3dee1ee161b21670b4e4`
 
-Haneye hayılrı olsun ustam\
-  
+Haneye hayılrı olsun ustam\\
