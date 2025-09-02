@@ -1,0 +1,85 @@
+---
+title: "Tor IRC"
+description: "Tor üzerinden IRC sunucusu açmayı göstericem
+"
+---
+
+Başlamadan önce, bir debian 10\+ vps'e ihtiyacınız olacak istediğiniz hosting firmasından alabilirsiniz. Kendi sunucunuzu kullanmayı tercih ediyorsanız, 80 ve 443 portlarının doğru şekilde yönlendirildiğinden emin olun. Böylece genel ip adresi yönlendiriciye değil, sunucuya yönlendirilir. Bunu yaptıktan sonra, debian sunucunuza SSH ile bağlanın.
+
+```bash
+[ 192.168.100.1/24 ] [ /dev/pts/13 ] [~/Nextcloud/blog/Conf]
+→ ssh root@123.123.123.123
+The authenticity of host '123.123.123.123' can't be established.
+ECDSA key fingerprint is SHA256:z2HAncB99pfbAUfj9tJY7vlo8EGUzCIUxWBAnjAflcA.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '123.123.123.123' (ECDSA) to the list of known hosts.
+Linux debian-s-1vcpu-1gb-lon1-01 4.19.0-10-cloud-amd64 #1 SMP Debian 4.19.132-1 (2020-07-24) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+root@debian-s-1vcpu-1gb-lon1-01:~#
+```
+
+```bash
+apt update -y && apt upgrade -y
+apt install tor inspircd -y
+
+wget https://blog.nowhere.moe/servers/irc_tor/inspircd.conf -O /etc/inspircd/inspircd.conf
+echo 'Welcome to Visec' > /etc/inspircd/inspircd.motd
+nano /etc/inspircd/inspircd.conf
+```
+
+<img
+  src="/images/image.png"
+  alt="image.png"
+  title="image.png"
+  style={{ width:"66%" }}
+/>
+
+İşiniz bittiğinde kaydetmek için ctrl s, nano'dan çıkmak için ctrl x e basın
+
+```bash
+nano /etc/tor/torrc
+```
+
+içerisine aşşağıdaki yazıp aynı şekilde kaydedip çıkın
+
+```bash
+HiddenServiceDir /var/lib/tor/hidden_service/
+echo 'HiddenServicePort 6667 127.0.0.1:6667
+```
+
+Ardından
+
+```bash
+systemctl restart tor
+cat /var/lib/tor/hidden_service/hostname
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.onion
+```
+
+Artık bu adresi kullanarak ırc sunucunuza bağlanabilirsiniz, şimdi inspircd'yi yeniden başlatın
+
+```bash
+systemctl status inspircd 
+systemctl restart inspircd
+
+## client:
+
+sudo apt install irssi hexchat tor
+
+sudo systemctl start tor
+```
+
+Tüm bunlardan sonra haxchat üzerinden aşşağıdaki adımları gerçekleştir
+
+![Ekrangörüntüsü2025 09 02144027 Pn](/images/Ekrangörüntüsü2025-09-02144027.png)
+
+![Ekrangörüntüsü2025 09 02144116 Pn](/images/Ekrangörüntüsü2025-09-02144116.png)
+
+![Ekrangörüntüsü2025 09 02143852 Pn](/images/Ekrangörüntüsü2025-09-02143852.png)
+
+Haneye hayırlı olsun ustam
