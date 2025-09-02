@@ -38,7 +38,8 @@
             "pages": [
               "Visec/DarkWeb/forumlar",
               "Visec/DarkWeb/tor",
-              "Visec/DarkWeb/safenet"
+              "Visec/DarkWeb/safenet",
+              "Visec/DarkWeb/torirc"
             ]
           },
           {
