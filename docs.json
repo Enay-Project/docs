@@ -43,6 +43,12 @@
             ]
           },
           {
+            "group": "CTF",
+            "pages": [
+              "Visec/ctf/mrrobot"
+            ]
+          },
+          {
             "group": "Web3",
             "pages": [
               "Visec/Web3/Sonic"
