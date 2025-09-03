@@ -1,4 +1,4 @@
-{
+a{
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "VİSEC OFSEC",
@@ -40,6 +40,12 @@
               "Visec/DarkWeb/tor",
               "Visec/DarkWeb/safenet",
               "Visec/DarkWeb/torirc"
+            ]
+          },
+          {
+            "group": "Siber Güvenlik",
+            "pages": [
+              "Visec/siber/yapma"
             ]
           },
           {
