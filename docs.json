@@ -45,7 +45,8 @@
           {
             "group": "Siber Güvenlik",
             "pages": [
-              "Visec/siber/yapma"
+              "Visec/siber/yapma",
+              "Visec/siber/cloudflare"
             ]
           },
           {
