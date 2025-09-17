@@ -36,7 +36,6 @@
           {
             "group": "Dark Web",
             "pages": [
-              "Visec/DarkWeb/forumlar",
               "Visec/DarkWeb/tor",
               "Visec/DarkWeb/safenet",
               "Visec/DarkWeb/torirc"
@@ -47,6 +46,12 @@
             "pages": [
               "Visec/siber/yapma",
               "Visec/siber/cloudflare"
+            ]
+          },
+          {
+            "group": "CTI",
+            "pages": [
+              "Visec/cti/forumlar"
             ]
           },
           {
