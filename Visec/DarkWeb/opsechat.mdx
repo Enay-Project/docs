@@ -1,0 +1,81 @@
+---
+title: "Chat Ortamlarında OPSEC"
+description: "Description of your new file."
+---
+
+# Public / Private / Anonim Sohbetler
+
+## Giriş
+
+Opsec'te ortaya çıkan önemli bir kavram var: **bölümlendirme (compartmentalization)**. Genel olarak, bölümlendirme; farklı faaliyetlerin birbirine bağlanmalarını önlemek için farklı bölmelere ayrılması olarak tanımlanabilir. Bu kavram en yaygın olarak çevrimiçi e-postalarda görülür. Tüm sosyal medya hesapların için bir e-posta, tüm çevrimiçi alışverişlerin için farklı bir e-posta ve sağlıkla ilgili konular için bambaşka bir e-posta kullanmak isteyebilirsin. Aynı kavram çevrimiçi sohbetlerin için de geçerlidir. Bu eğitimde, farklı sohbet türlerini, bunları bağlama göre nasıl bölümlendireceğini ve her birinin ne zaman en uygun şekilde kullanılacağını inceleyeceğiz.
+
+---
+
+## Sohbetlerde OPSEC Gereksinimleri
+
+ Ortada sayısız sohbet uygulaması var ve daha önce açıkladığım gibi, hedeflediğiniz Operasyonel Güvenlik (OPSEC) düzeyine (gizlilik, anonimlik) bağlı olarak, kullanılacak aracın amacına uygun olması için belirli kriterleri karşılaması gerekir.
+
+Aşağıda göreceğiniz gibi, gerçekleştirmek istediğiniz sohbet türlerine bağlı olarak, kullanacağınız sohbet platformunun da bu amaca uygun OPSEC gereksinimlerini karşılaması gerekir.
+
+---
+
+## Sohbet Türleri
+
+Aşağıdaki tablo 4 farklı sohbet türünü tanımlar. Bunlar kendilerine özgü özelliklerine göre ayrılmıştır ve her kategori için kısa bir açıklama, teknik ayrıntılar ve bazı artılar/eksiler verilmiştir.
+
+|                                      | **Public Chats (Herkese Açık)**                                                 | **Private Chats** **(Özel)**                                                                                                                                                                               | **Anonymous Chats (Anonim)**                                                                                                                            | **Deniable Chats (İnkâr Edilebilir)**                                                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Açıklama**                         | Herkes tarafından görülebilen, herkese açık ortamda gerçekleşen konuşma         | İçeriği yalnızca katılımcılar tarafından bilinen konuşma                                                                                                                                                   | Katılımcıların bazı/hiçbirinin gerçek kimliklerinin bilinmediği konuşma                                                                                 | Gerçekleştiği kanıtlanamayan konuşma                                                                                                                                               |
+| **Örnek**                            | spor stadyumunda konuşuyor                                                      | Enay ve Meral iş yerinde bir toplantı odasında konuşuyor                                                                                                                                                   | Enay, trençkotlu gizemli biriyle konuşuyor                                                                                                              | Enay, Meral ile konuşuyor ama konuşmaya dair hiçbir kayıt veya kanıt yok                                                                                                           |
+| **Teknik Gereksinimler (Çevrimiçi)** | - Yok (söylediğin her şey herkese açık bilgi)                                   | - FOSS Yazılım<br />- E2EE (uçtan uca şifreleme) gerekli<br />- Sohbet sunucusunu kendin barındırabilmelisin                                                                                               | - FOSS Yazılım<br />- E2EE gerekli<br />- Kayıt olurken telefon numarası, kullanıcı kimliği ve IP adresi bağlantısı olmamalı ( üzerinden)               | - FOSS Yazılım<br />- E2EE gerekli<br />- Kayıt olurken telefon numarası, kullanıcı kimliği ve IP adresi bağlantısı olmamalı (Tor üzerinden)<br />- Kendiliğinden silinen mesajlar |
+| **Artılar**                          | - En kolay uygulanabilir<br />- Kısıtlama yok<br />- Her ortamda kullanılabilir | - Sohbetin içeriği sadece katılımcılar tarafından görülebilir<br />- Birçok uygulama artık E2EE destekli                                                                                                   | - Her sohbet için farklı anonim kimlikler kullanılabilir<br />- Tartışmalı konular için uygundur<br />- Anonimlik herkese açık sohbetlerde de mümkündür | - Kayıt dışı<br />- Konuşma geçmişi yok<br />- Hassas konular için uygundur                                                                                                        |
+| **Eksiler**                          | - Söylenen her şey gerçek kimliğinle ilişkilendirilebilir                       | - Çok az sohbet uygulaması hem istemci hem sunucu tarafında FOSS<br />- Katılımcıların kimliği bilinir<br />- Sohbetin gerçekleştiği bilinebilir<br />- Sohbet kalıplarından davranış modeli çıkarılabilir | - Gerçekten anonim kayıt imkânı sunan uygulama çok az<br />- Anonim tarafın söylediklerinden kimliği ortaya çıkabilir                                   | - Süre sınırı dolduktan sonra sohbet geçmişi görülemez                                                                                                                             |
+
+Tıpkı birçok şeyde olduğu gibi, bu sohbet türleri de daha kullanışlı ile daha güvenli arasında bir spektrumda yer alır.
+
+---
+
+## Public Chat Örneği
+
+Bu kavramları açıklamak için birkaç örneğe bakalım. İlk olarak, çevrimiçi sosyal medya, herkese açık sohbet odaları vb. ortamlarda bulabileceğiniz türden herkese açık bir sohbet.
+
+<img
+  src="/images/photo_5933702885604970599_y.jpg"
+  alt="Photo 5933702885604970599 Y Jp"
+  title="Photo 5933702885604970599 Y Jp"
+  style={{ width:"43%" }}
+/>
+
+Bu sohbet, Enay ve Yunus'un gerçek kimliklerine bağlıdır ve herkes tarafından görülebilir. Örneğin snap kullanmaları, attıkları fotoğraflar, isimleri veya numaraları gibi bilgiler, konuşma sırasında orada bulunan herkes tarafından artık bilinir hale gelir. Enay ve Yunus snap isimlerini rahatlıkla söylebilir, ancak ya başkalarının bilmesini istemedikleri bir bilgi olursa?
+
+## Private Chat Örneği
+
+Herkesin bilmesinin gerekmediği bilgiler içeren konuşmalar için özel sohbetler kullanılır. Özel sohbetlerde katılımcılar hâlâ gerçek kimliklerini kullanabilirler, ancak temel fark, konuşmanın uçtan uca şifreleme (E2EE) ile yalnızca katılımcılar arasında erişilebilir olmasıdır.
+
+<img
+  src="/images/download.jpg"
+  alt="download.jpg"
+  title="download.jpg"
+  style={{ width:"51%" }}
+/>
+
+Enay, yarın ki planına başka insanların gelmesinden rahatsız olabilir, ama arkadaşı Meral'i çağırabilir. Bu özel sohbette yalnızca Enay ve Meral ne konuşulduğunu bilir ve bu konuşmanın bir kaydı vardır. Neyse ki birçok popüler sohbet uygulaması artık E2EE destekliyor, ancak meta veri koruması olmadan hâlâ kiminle ne sıklıkla konuştuğuna dair kalıplar çıkarılabilir. Peki biri seninle konuşurken kim olduğunu bilmeni istemezse ne olur?
+
+---
+
+## Anonymous Chat Örneği
+
+Katılımcılardan birinin (veya birkaçının) konuşmanın hiçbir şekilde gerçek kimliklerine bağlanmasını istemediği konuşmalar için anonim sohbetler kullanılır. OPSEC gereksinimleri arttıkça daha özel yazılımlara ihtiyaç duyulur ve bu da bazı kişiler için daha zahmetli olabilir. Ben aktif olarak **SimpleX **kullanıyorum. Her mesaj,**aracı sunucular**  üzerinden **şifreli kapsüller** hâlinde iletilir. Bu broker sunucuları sadece **şifreli veriyi geçici olarak saklar**, içerikleri göremez. Mesaj karşı tarafa ulaşınca sunucudaki kopya **otomatik silinir.**
+
+<img
+  src="/images/image.png"
+  alt="image.png"
+  title="image.png"
+  style={{ width:"91%" }}
+/>
+
+Bu örnekte Enay, gerçek kimliğiyle bağlantılı olmak istemeyen biriyle konuşuyor (katılımcı gizli profil kullanıyor). Konuşmanın doğası gizli bilgi gibi tartışmalı konular içerebilir. Anonim sohbet sağlamak için kullanıcı kimlikleri ve IP bağlantısı kesinlikle olmamalıdır. Ayrıca kullanıcı kimliği olmaması sayesinde kişi, anlık olarak tek kullanımlık kimlikler oluşturabilir ve her yeni konuşmada farklı bir anonim kimlik kullanabilir. 
+
+## Sonuç
+
+Farklı ihtiyaçlarımıza göre sohbetlerimizi bölümlendirerek, özel tutmak istediğimiz konuların gerçek kimliklerimizle kesişmesini önleyebiliriz. 

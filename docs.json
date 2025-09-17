@@ -37,7 +37,6 @@
             "group": "Dark Web",
             "pages": [
               "Visec/DarkWeb/tor",
-              "Visec/DarkWeb/safenet",
               "Visec/DarkWeb/torirc"
             ]
           },
