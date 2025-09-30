@@ -1,10 +1,9 @@
 ---
 title: "Tor IRC"
-description: "Tor üzerinden IRC sunucusu açmayı göstericem
-"
+description: "Tor üzerinden IRC sunucusu açmayı göstericem "
 ---
 
-Başlamadan önce, bir debian 10\+ vps'e ihtiyacınız olacak istediğiniz hosting firmasından alabilirsiniz. Kendi sunucunuzu kullanmayı tercih ediyorsanız, 80 ve 443 portlarının doğru şekilde yönlendirildiğinden emin olun. Böylece genel ip adresi yönlendiriciye değil, sunucuya yönlendirilir. Bunu yaptıktan sonra, debian sunucunuza SSH ile bağlanın.
+Başlamadan önce, bir debian 10+ vps'e ihtiyacınız olacak istediğiniz hosting firmasından alabilirsiniz. Kendi sunucunuzu kullanmayı tercih ediyorsanız, 80 ve 443 portlarının doğru şekilde yönlendirildiğinden emin olun. Böylece genel ip adresi yönlendiriciye değil, sunucuya yönlendirilir. Bunu yaptıktan sonra, debian sunucunuza SSH ile bağlanın.
 
 ```bash
 [ 192.168.100.1/24 ] [ /dev/pts/13 ] [~/Nextcloud/blog/Conf]
@@ -38,11 +37,12 @@ nano /etc/inspircd/inspircd.conf
   alt="image.png"
   title="image.png"
   style={{ width:"66%" }}
+  className="mx-auto"
 />
 
 İşiniz bittiğinde kaydetmek için ctrl s, nano'dan çıkmak için ctrl x e basın
 
-```bash
+```bash filename expandable
 nano /etc/tor/torrc
 ```
 
