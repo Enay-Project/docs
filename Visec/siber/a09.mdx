@@ -1,0 +1,394 @@
+---
+title: "A09"
+description: "Security Logging and Monitoring Failures"
+---
+
+Bu saldırı türünde, hataları ve şüpheli faaliyetleri doğru, bütünlüklü ve zamanında kaydedememe ile bunları izleyip alarmlara dönüştürememe halidir. Saldırgan, hedef sistemde zararlı faliyetlerini log manipülasyonları ile değiştirir. Bu saldırı loglama tespitini geciktirir, kanıtları zayıflatır ve saldırganın kalıcılığını artırır.
+
+## Tanım
+
+Uygulama, altyapı ve kimlik katmanlarında üretilen olayların (authentication, authorization, state change, config drift, network egress) eksik veya yanlış biçimde kaydedilmesi veya bu olaylardan **telemetri** üretilip **uyarılara** dönüştürülememesi loglarda verinin kanıtlanamaması, log bütünlüğünün korunamaması, saat senkronizasyonunun bozuk olması ve gözlemlenebilirliğin yetersiz olması.\
+Örneğin API bruteforce 8 saat sürdü, login failure loglanıyordu ama SIEMe forward edilmedi. Account Takeover ve para transferleri oldu. 
+
+## Root cause’lar
+
+- “info-only” log seviyesi nedeniyle güvenlik olaylarının atlanması.
+- Login, token refresh, MFA ayrı ve yapılandırılmış.
+- Log bütünlüğü için hmac ve değiştirilemez worm olmaması.
+- Saat senkronizasyonu ve timezone eksikliği.
+- noise ve yüksek false-positive nedeniyle kapatılmış uyarılar.
+- SIEM hatalı ingest, mTLS/allowlistin olmaması.
+- forwarder config hataları (buffer overflow, drop-on-full).
+- Yetki modeli zayıf, geliştirici logları silebiliyor.
+- Üretim dışı logların prod SIEMe karışması .
+- Runbook ve oncall süreçlerinin olmaması.
+
+## Etkiler & riskler
+
+- Gecikmiş tespit (MTTD) ve uzun toparlanma (MTTR).
+- Forensic kanıtın yetersizliği, hukuki/sigorta süreçleri zayıflar.
+- Persistence ve ıateral movement gizlenir.
+
+## Tespit 
+
+- **Anormal login failure**
+- **Beklenmeyen kaynak IP**’den admin oturumlar.
+- **Log ingest hataları** 
+- **Saat kayması** 
+- **Audit boşlukları** 
+- **Agent kalp atışı (heartbeat) kesilmesi** 
+- **Ani whitelist/alert kuralı değişiklikleri** 
+
+## Örnek log
+
+```bash
+{"@ts":"2025-10-02T14:00:03Z","app":"pay-api","lvl":"INFO","msg":"user login ok","labels":{"user":"alice","ip":"10.0.3.5"}}
+{"@ts":"2025-10-02T14:00:04Z","app":"pay-api","lvl":"ERROR","msg":"balance=-999999","labels":{"tenant":"prod","sig":"AAAA"}}
+{"@ts":"2025-10-02T14:00:05Z","app":"pay-api","lvl":"INFO","msg":"transfer ok","labels":{"amount":"1000000","source":"rum"}}
+```
+
+_(Sahte: imza yok, negatif bakiye, “rum” kaynağı prod’a sızdırılmış.)_
+
+## Vulnerable flow 
+
+1. **İstemci sahte log hazırlar**
+
+```bash
+POST /ingest HTTP/1.1
+Host: log.example.com
+Content-Type: application/json
+Content-Length: 108
+
+{"app":"pay-api","lvl":"INFO","msg":"transfer ok","labels":{"amount":"1000000","source":"rum"}}
+```
+
+2. **Ingest proxy hiçbir doğrulama yapmadan geçirir**
+
+```bash
+HTTP/1.1 202 Accepted
+X-Forwarded-For: 198.51.100.77
+```
+
+3. **Backend parser zayıf şema kontrolü ile kabul eder**
+
+```bash
+POST /_bulk
+{"index":{"_index":"logs"}}
+{"app":"pay-api","lvl":"INFO","msg":"transfer ok","labels":{"amount":"1000000","source":"rum"}}
+```
+
+4. **SIEM’de korelasyon yok; “source” whitelist dışı fark edilmez**
+
+```bash
+HTTP/1.1 200 OK
+{"result":"created"}
+```
+
+5. **Saldırgan noise üretir, gerçek alarmlar gömülür**
+
+```bash
+POST /ingest ... {"lvl":"ERROR","msg":"timeout","labels":{"component":"db","code":"ETIMEDOUT"}}
+```
+
+6. **SOC geç fark eder; forensic için provenance bulunamaz**
+
+## Server-side mitigation snippet
+
+```bash
+// app.js
+const express = require('express');
+const crypto = require('crypto');
+const app = express();
+
+const ALLOWED_APPS = new Set(['pay-api','auth-api']);
+const ALLOWED_SOURCES = new Set(['srv','agent']);
+const SHARED_TOKEN = process.env.INGEST_TOKEN; // rotate & store in KMS
+
+app.use(express.json({ type: 'application/json', limit: '256kb' }));
+
+function validate(req, res, next) {
+  const token = req.header('X-Ingest-Token');
+  if (!token || !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(SHARED_TOKEN))) {
+    return res.status(401).end();
+  }
+  const { app: appName, lvl, msg, labels } = req.body || {};
+  if (!ALLOWED_APPS.has(appName)) return res.status(400).send('bad app');
+  if (!['INFO','WARN','ERROR'].includes(lvl)) return res.status(400).send('bad level');
+  if (!labels || !ALLOWED_SOURCES.has(labels.source || '')) return res.status(400).send('bad source');
+  req.body.trace_id ||= crypto.randomUUID(); // enforce correlation id
+  req.body.rcvd_at = new Date().toISOString(); // server timestamp
+  next();
+}
+
+app.post('/ingest', validate, (req, res) => {
+  // forward to SIEM via internal network only
+  // TODO: add HMAC header (see snippet #2)
+  res.status(202).json({ accepted: true, trace_id: req.body.trace_id });
+});
+
+app.listen(8443, () => console.log('ingest on 8443'));
+```
+
+## Server-side mitigation snippet 2 
+
+```bash
+import hmac, hashlib, base64, json, time
+
+SECRET = b'kdf-rotated-key'  # rotate via KMS, track key-id
+ALG = hashlib.sha256
+
+def compute_signature(payload_bytes: bytes, ts: str, key_id: str) -> str:
+    mac = hmac.new(SECRET, ts.encode()+b'.'+payload_bytes, ALG).digest()
+    return f"{key_id}:{base64.b64encode(mac).decode()}"
+
+def verify(headers, body_bytes):
+    ts = headers.get('X-Timestamp')
+    key_id, sig = headers.get('X-Signature',' :').split(':',1)
+    if abs(time.time() - int(ts)) > 120: return False  # 2dk replay penceresi
+    mac = hmac.new(SECRET, ts.encode()+b'.'+body_bytes, ALG).digest()
+    return hmac.compare_digest(base64.b64encode(mac).decode(), sig)
+```
+
+## SIEM detection
+
+**Tek istemciden ingest endpoint’ine ani artış (DoS)**
+
+```bash
+index=proxy sourcetype=http method=POST uri="/ingest" earliest=-15m
+| stats count by src_ip
+| where count > 500
+```
+
+_Açıklama: 15 dk’da tek IP \>500 POST anomalisini loglar._
+
+**Beklenmeyen label kombinasyonu (app=pay-api, source=rum)** 
+
+```bash
+index=logs app="pay-api" labels.source="rum" earliest=-24h
+| stats count by labels.source, app
+```
+
+_Açıklama: whitelist dışı kaynak ile app eşleşmelerini çıkarır._
+
+## SIEM detection / Elasticsearch Query DSL
+
+**Spike agg**
+
+```bash
+{
+  "query": { "bool": { "filter": [
+    { "term": { "http.request.method": "POST" }},
+    { "term": { "url.path": "/ingest" }},
+    { "range": { "@timestamp": { "gte": "now-15m" }}}
+  ]}},
+  "aggs": { "by_ip": { "terms": { "field": "source.ip", "size": 50 } } }
+}
+```
+
+**Anomali: app-source uyumsuzluğu**
+
+```bash
+{
+  "query": { "bool": { "must": [
+    { "term": { "app": "pay-api" }},
+    { "term": { "labels.source": "rum" }}
+  ]}}
+}
+```
+
+## Sigma rule (YAML)
+
+```bash
+title: Suspicious Log Ingestion From Unapproved Source
+id: a09-fake-logs-001
+logsource: { product: webserver, service: http }
+detection:
+  sel: 
+    url.path: /ingest
+    http.request.method: POST
+    labels.source|contains: rum
+  condition: sel
+level: high
+fields: [source.ip, app, labels.source, @timestamp]
+```
+
+## Patch diff 
+
+```c
+--- a/src/Request.ts
++++ b/src/Request.ts
+@@ -12,10 +12,21 @@ export async function ingest(req, res) {
+-  const body = await req.json();
+-  // directly forward
+-  await http.post(SIEM_URL, body);
+-  return res.status(202).end();
++  const body = await req.json();
++  const app = body.app; const source = body?.labels?.source;
++  if (!ALLOWED_APPS.has(app)) return res.status(400).send('bad app');
++  if (!ALLOWED_SOURCES.has(source)) return res.status(400).send('bad source');
++  const ts = Date.now().toString();
++  const payload = JSON.stringify(body);
++  const sig = hmac(ts + '.' + payload, KEY_ID);
++  await http.post(SIEM_URL, payload, {
++    headers: { 'X-Timestamp': ts, 'X-Signature': sig, 'X-Key-Id': KEY_ID }
++  });
++  return res.status(202).json({accepted:true});
+ }
+```
+
+## KANLI ÖRNEK
+
+bugbounty programından öncesinde bulduğum ve bildirdiğim bir poc'u teknik ve kanıtlayıcı  parça parça anlatacağım. Kodun ne yaptığı, protokol akışı, neden kabul edildiği, hangi kontrollerin eksik olduğu, tespit ve düzeltme önerileri hepsi mevcut.
+
+<Info>
+  Gösterdiklerim eskiden var olan ama bildirmem ile kapatılan bir gerçek bir zafiyete aittir, zafiyeti tekrarlamaya çalışmayınız. Bu bilgiler sadece bilgilendirme amaçlıdır herhangibi bir artniyet yoktur.
+</Info>
+
+![Ekrangörüntüsü2025 10 02184419 Pn](/images/Ekrangörüntüsü2025-10-02184419.png)
+
+## 1) Ne yapıyor kısaca
+
+ İstemci tarafındaki `window.sdkConfig` değerlerini (özellikle `proxyUrl` ve `suffix`) manipüle ederek, **üretim Coralogix RUM ingest** uç noktasına **doğrulamasız** log göndermek.
+
+İstemci (CSP ile izinli) **kurum proxy’si** `/cxproxy` → `cxforward` query’siyle **Coralogix RUM ingest**; burada **kaynak/doğruluğu ispatlanmayan** log, doğruymuş gibi kabul ediliyor.
+
+## 2) Kodun satır satır kritik noktaları
+
+```javascript
+class EnesRequest {
+  constructor(requestConfig) {
+    this.requestConfig = requestConfig;
+    this.resolvedUrl = '';
+    this.resolvedHeaders = {};
+    this.init();
+  }
+```
+
+Sınıf, bir log gönderim istemcisi gibi davranıyor; konfigüasyonu alıp hedef URL/başlıkları hazırlıyor.
+
+```javascript
+  init() {
+    const sdkConfig = window.sdkConfig || {};
+    const { proxyUrl, coralogixDomain = "US1", public_key } = sdkConfig;
+    const { suffix, headers } = this.requestConfig;
+    const cxEndpoint = `https://ingress.${coralogixDomain.toLowerCase()}.rum-ingress-coralogix.com${suffix}`;
+```
+
+**Burası kritik** `window.sdkConfig` **istemciden değiştirilebilir**. `coralogixDomain` + `suffix` birleştirilerek **doğrudan** Coralogix RUM ingest URL’si üretiliyor ( `/browser/v1beta/logs`).
+
+```javascript
+    this.resolvedUrl = proxyUrl
+      ? `${proxyUrl}?cxforward=${encodeURIComponent(cxEndpoint)}`
+      : cxEndpoint;
+```
+
+Eğer `proxyUrl` varsa (CSP’de izinli), **site proxy’si** devreye giriyor ve **hedef gerçek ingest** `cxforward` parametresi ile iletiliyor. Böylece **CORS/CSP engelleri baypas** ediliyor; proxy bir **açık forwarder** gibi.
+
+```javascript
+    if (public_key) {
+      headers['Authorization'] = `Bearer ${public_key}`;
+    }
+    this.resolvedHeaders = headers;
+  }
+```
+
+`public_key` taşıyıcı olarak **<u>Authorization: Bearer</u>** ekleniyor. RUM SDK’larında public key sıklıkla **kimliklendirme değil kota/tenant yönlendirme** içindir; burada **yetkilendirme** yerine kullanılması, kaynağı doğrulanmamış logların meşrulaşmasına yol açıyor.
+
+```javascript
+  send(body) {
+    return fetch(this.resolvedUrl, {
+      method: 'POST',
+      headers: this.resolvedHeaders,
+      body,
+    })
+```
+
+Son adımda **POST** ile log JSON’ı gönderiliyor; **orijin** kanıtı yok, **proxy de doğrulamıyor**.
+
+## 3) Ağ/protokol akışı
+
+**İstemciden Proxye**
+
+```javascript
+POST /cxproxy?cxforward=https://ingress.us1.rum-ingress-coralogix.com/browser/v1beta/logs HTTP/1.1
+Host: au.floqast.app
+Content-Type: application/json
+Authorization: Bearer <public_key>
+Content-Length: 128
+
+{"msg":"Eny tarafından gönderilen sahte log","severity":"critical","labels":{"injected":"true","attacker":"enes"}}
+```
+
+**Proxyden Coralogixe**
+
+```javascript
+POST /browser/v1beta/logs HTTP/1.1
+Host: ingress.us1.rum-ingress-coralogix.com
+Content-Type: application/json
+Authorization: Bearer <public_key>
+X-Forwarded-For: 198.51.100.77
+...
+<body aynı>
+```
+
+**Neden kabul ediliyor?**
+
+- **Kaynak doğrulaması yok:** Proxy, `cxforward`’ı **körlemesine** forward ediyor (domain allowlist yok).
+- **İçerik bütünlüğü yok:** Log body’si **imzasız** (HMAC/EdDSA yok), **replay** koruması yok (`X-Timestamp`/nonce yok).
+- **RUM ingest modeli:** RUM uçları sıklıkla **kamuya açık** (tarayıcıdan veri bekler), “public key” **tenant/stream eşlemesi** olarak işlev görebilir; bu, **kimlik doğrulama** yerine kullanıldığında **sahtecilik** mümkün olur.
+
+## 4) Güvenlik zafiyeti sınıflandırması 
+
+- **Security Logging & Monitoring Failures:** Log **provenance** (kaynak kökeni) ve **bütünlük** garantileri yok; pipeline’a **sahte telemetri** giriyor → **tespit/olay müdahalesi** çarpıtılıyor.
+- **Gözlemlenebilirlik kırılması:** Alerting, forensics, SLO/SLA ölçümleri **yanlış** veriye dayanıyor.
+
+## 5) İzlenebilir kanıtlar
+
+- **Proxy access logları:** `/cxproxy` için **tek IP’den ani POST artışı**; olağandışı `cxforward` hedefleri (regex ile dış domain).
+- **RUM indeksinde anomaliler:** `labels.attacker=en es`, `injected=true` gibi **beklenmeyen label anahtarları/değerleri**, **aşırı ‘critical’** oranı ki onuda biz ayarlıyoruz, istesek low impact birşey gösterebilirdik.
+- **Kaynak çeşitliliği:** Aynı `Authorization: Bearer <public_key>` ile **birçok ASN/IP**.
+
+## 6) Önerilen Düzeltmeler
+
+**Proxy tarafı**
+
+- Sadece bu listeye forward et: `ingress.(us1|eu1|ap1).rum-ingress-coralogix.com`.
+- `cxforward` **tam URL** değil, **önceden tanımlı anahtar** olsun (örn. `dst=rum_us1_logs`).
+- İstemciden gelen `Authorization` **strip** et; **sunucu** kendi “upstream key”ini eklesin.
+- HMAC/time-bound imza zorunlu kıl: `X-Timestamp`, `X-Signature`.
+
+**Nginx (şablon)**
+
+```javascript filename
+location = /cxproxy {
+  if ($arg_dst !~ ^(rum_us1_logs|rum_eu1_logs)$) { return 400; }
+  set $upstream "";
+  if ($arg_dst = "rum_us1_logs") { set $upstream "https://ingress.us1.rum-ingress-coralogix.com/browser/v1beta/logs"; }
+  proxy_set_header Authorization "";            # strip client header
+  proxy_set_header X-Proxy-Auth "Bearer $proxy_secret"; # server-side credential
+  proxy_pass $upstream;
+}
+```
+
+**(b) İstemci tarafı — güvenilmez konfigürasyona güvenme**
+
+- `window.sdkConfig` → **salt okunur** inline, runtime’da **override** edilmesin.
+- `public_key` **Authorization** olarak **kullanılmasın**; sadece stream/tenant routing için kalsın.
+
+**(c) HMAC (sunucu üretir, upstream doğrular)**
+
+```javascript
+def make_sig(body: bytes, ts: str, key: bytes) -> str:
+    import hmac, hashlib, base64
+    mac = hmac.new(key, ts.encode()+b'.'+body, hashlib.sha256).digest()
+    return base64.b64encode(mac).decode()
+# Header: X-Timestamp, X-Signature; proxy ekler, istemci ekleyemez.
+```
+
+## 9) Neden kritik?
+
+Kaynak doğrulaması ve içerik bütünlüğü olmayan bir log pipeline’ı, **saldırganın tek bir tarayıcı konsolu** ile üretim gözlemlenebilirliğini **çöpe çevirmesine** izin verir: sahte alarmlar, bastırılmış gerçek olaylar, bozulmuş forensik ve güvenilmez metrikler. Bu, **A09’un** birebir örneğidir.
+
+<Warning>
+  Testler yalnızca hedef sistem sahibiyle koordineli yapılmalı, **üretim etkisi** yaratmamak için oran sınırlaması/rate limit ile çalışılmalı ve kanıtlar **PII içermemelidir**. Açık kapatılana kadar teknik ayrıntılar (anahtarlar/endpoint’ler) kısmen redakte edilmelidir.
+</Warning>
