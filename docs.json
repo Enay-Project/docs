@@ -85,6 +85,17 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "CVE",
+        "groups": [
+          {
+            "group": "CVE-2025-12059",
+            "pages": [
+              "CVE/1"
+            ]
+          }
+        ]
       }
     ],
     "global": {
