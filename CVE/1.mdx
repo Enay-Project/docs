@@ -80,6 +80,8 @@ jar dosyalarından incelemem ile linke bu şekilde parametreler gönderdiğim za
   style={{ width:"75%" }}
 />
 
+![Görsel 2025 11 01 235930916 Pn](/images/görsel_2025-11-01_235930916.png)
+
 ```bash
 java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
      --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED \
@@ -94,7 +96,7 @@ Görselde ki gibi, gerçektende runapp.jnlp'e dosya göndermeyi başardım ve 80
 
 ## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
-![image.png](/images/image.png)
+![Ekrangörüntüsü2025 11 01220812 Pn](/images/Ekrangörüntüsü2025-11-01220812.png)
 
 Obje sınıfı ilk anlattığım gibi `readObject() / ObjectInputStream`  gibi objeler olabilir, obje oldukça masumane bir şekilde ilgili sisteme veri getir götür işlemlerini yaparken, burada zafiyet olduğunu tespit eden Kötü Niyetli Saldırgan kişisi `A` olayında olduğu gibi, olan veriyi Serileştirerek içeriye sokar.\
 `B `olayında ise eğer kötü niyetli saldırgan serileştirilmiş veriyi gönderebilirse deserialization dediğimiz olay gerçekleşir ve sistem içeride bu veriyi seri durumdan çıkarır ve sistemi içeriye sokar. `C` olayında ise artık saldırganın içeride komut çalıştırmasının önünde bir engel kalmaz.
