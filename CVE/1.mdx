@@ -106,6 +106,35 @@ Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klas
 
 Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
 
+# Zaman Çizelgesi
+
+- **05.10.2025** – İlk bildirim
+- **22.10.2025** – CVE tahsisi
+- **22.10.2025 sonrası** – Vendor **WAF/endpoint davranışını** değiştiriyor (POST/PUT → 405; büyük gövdede RST; GET/HEAD 200 ile JNLP servis ediyor).
+
+## Saldırı yüzeyi
+
+Uygulamanın **JNLP akışı** sırasında istemciye verdiği `Startup.jar` içindeki `JLbsStartup ve websocket` başlatıcı, JNLP’de ilettiğim `DOCUMENT_URI` parametresini **arkada doğrudan tüketiyor**. Sunucu tarafında bu değer, istenen belge/konfigürasyonu çekmek için zincirin içine giriyor ve **gelen veriyi **`ObjectInputStream.readObject()`**ile deserialize eden bir kod yoluna**  temas ediyor.\
+Önceki sürümde **kimlik doğrulaması olmadan**, `/logo/smart/runapp` endpoint’i **istek gövdesini metoddan bağımsız** okuyordu ben de `HEAD`**isteğiyle**  `application/x-java-serialized-object` gövde gönderip **gadget chain**’i çalıştırdım. Yani sorun **JNLP parametresi ile sunucu tarafı deserialize** köprüsünden kaynaklanıyordu, ağ katmanında method/Content-Type fark etmeyen bir okuma vardı.\
+Mitigasyon sonrası **POST/PUT 405**, **büyük gövdede RST (WAF)** ve **HEAD/GET sadece JNLP döndürüyor** ve dolayısıyla exploit yolu uygulamada kapatılmış görünüyor. Güncel testler ile hali ile:
+
+```blade
+METHOD  | BODY         | C-TYPE                               | SONUÇ
+HEAD    | yok          | —                                    | 200 (jnlp headers)
+HEAD    | 5B txt       | application/x-java-serialized-object | 200
+HEAD    | 5B txt       | application/octet-stream             | 200
+HEAD    | 100B .ser    | application/x-java-serialized-object | 200
+HEAD    | >1000B .ser  | application/x-java-serialized-object | WAF
+POST    | 100B .ser    | application/x-java-serialized-object | WAF 
+POST    | 400B .ser    | application/x-java-serialized-object | WAF
+POST    | full .ser    | application/x-java-serialized-object | WAF
+PUT     | 100/400/full | application/x-java-serialized-object | 405 
+```
+
+ancak **kök neden** (güvensiz deserialization) kod tarafında kalıcı olarak kaldırılmadıysa risk mimaride hala var kabul edilmeli.
+
+**JNLP’deki **`DOCUMENT_URI`**den server-side fetch sırasında ** `ObjectInputStream.readObject()`**’a akan veri, metod-agnostik body okuma nedeniyle uzaktan ve auth’suz tetiklenebiliyordu, HEAD + serialized body ile RCE elde ettim.**
+
 ## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
 ![Ekrangörüntüsü2025 11 01220812 Pn](/images/Ekrangörüntüsü2025-11-01220812.png)
