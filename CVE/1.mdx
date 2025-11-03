@@ -114,9 +114,11 @@ Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klas
 
 ## Saldırı yüzeyi
 
-Uygulamanın **JNLP akışı** sırasında istemciye verdiği `Startup.jar` içindeki `JLbsStartup ve websocket` başlatıcı, JNLP’de ilettiğim `DOCUMENT_URI` parametresini **arkada doğrudan tüketiyor**. Sunucu tarafında bu değer, istenen belge/konfigürasyonu çekmek için zincirin içine giriyor ve **gelen veriyi **`ObjectInputStream.readObject()`**ile deserialize eden bir kod yoluna**  temas ediyor.\
+Uygulamanın **JNLP akışı** sırasında istemciye verdiği `Startup.jar` içindeki `JLbsStartup ve websocket` başlatıcı, JNLP’de ilettiğim `DOCUMENT_URI` parametresini **arkada doğrudan tüketiyor**. Sunucu tarafında bu değer, istenen belge/konfigürasyonu çekmek için zincirin içine giriyor ve \*\*gelen veriyi \*\*`ObjectInputStream.readObject()`**ile deserialize eden bir kod yoluna**  temas ediyor.\
 Önceki sürümde **kimlik doğrulaması olmadan**, `/logo/smart/runapp` endpoint’i **istek gövdesini metoddan bağımsız** okuyordu ben de `HEAD`**isteğiyle**  `application/x-java-serialized-object` gövde gönderip **gadget chain**’i çalıştırdım. Yani sorun **JNLP parametresi ile sunucu tarafı deserialize** köprüsünden kaynaklanıyordu, ağ katmanında method/Content-Type fark etmeyen bir okuma vardı.\
 Mitigasyon sonrası **POST/PUT 405**, **büyük gövdede RST (WAF)** ve **HEAD/GET sadece JNLP döndürüyor** ve dolayısıyla exploit yolu uygulamada kapatılmış görünüyor. Güncel testler ile hali ile:
+
+https://gist.github.com/Enay-Project/27bb66810b0c6e500a0b49d28a3b1945
 
 ```blade
 METHOD  | BODY         | C-TYPE                               | SONUÇ
@@ -133,7 +135,7 @@ PUT     | 100/400/full | application/x-java-serialized-object | 405
 
 ancak **kök neden** (güvensiz deserialization) kod tarafında kalıcı olarak kaldırılmadıysa risk mimaride hala var kabul edilmeli.
 
-**JNLP’deki **`DOCUMENT_URI`**den server-side fetch sırasında ** `ObjectInputStream.readObject()`**’a akan veri, metod-agnostik body okuma nedeniyle uzaktan ve auth’suz tetiklenebiliyordu, HEAD + serialized body ile RCE elde ettim.**
+JNLP’deki `DOCUMENT_URI`den server-side fetch sırasında `ObjectInputStream.readObject()`’a akan veri, metod-agnostik body okuma nedeniyle uzaktan ve auth’suz tetiklenebiliyordu, **HEAD + serialized body ile RCE elde ettim.**
 
 ## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
