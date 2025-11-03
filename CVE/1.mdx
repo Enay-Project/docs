@@ -83,7 +83,7 @@ Pyhon komutu ile HEAD isteği başarı ile gönderildi.
 
 ![Ekrangörüntüsü2025 11 03213652 Pn](/images/Ekrangörüntüsü2025-11-03213652.png)
 
-HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, o bize sadece `DOCUMENT_URI` 'ye HEAD işlemlerinin kayıt edildiğini gösteriyor, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. Normalde HEAD methodu ile RCE yapılmaz, uzun uzun araştırdım ancak böyle bir CVE'ye denk gelmedim hiç. 
+HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, o bize sadece `DOCUMENT_URI` 'ye HEAD işlemlerinin kayıt edildiğini gösteriyor, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. Normalde HEAD methodu ile RCE yapılmaz ancak sunucuda ki yanlış yapılanma uygun koşulları sağlıyor.
 
 Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
 
