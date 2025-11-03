@@ -8,14 +8,14 @@ description: "CWE-502"
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 **CWE:** CWE-502
 
-Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini **Java **`ObjectInputStream.readObject()` ile işliyor. Bu sayede **serileştirilmiş (serialized) kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** (`CommonsCollections2` + `TemplatesImpl`) aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
+Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini \*\*Java \*\*`ObjectInputStream.readObject()` ile işliyor. Bu sayede **serileştirilmiş (serialized) kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** (`CommonsCollections2` + `TemplatesImpl`) aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
 
 ## Olay Akışı
 
 1. `http://xx.xxx.xx.xxx:8080/logo/smart/runapp?...` uç noktası tespit edildi; yanıt olarak JNLP döndürdüğü ve **kimlik doğrulaması istemediği** görüldü.
 2. JNLP içinde ana bileşenler `Startupv3.*.jar` vb. JAR’lara işaret ediyor.
 3. JAR analizi sırasında `com.lbs.start.SocketToken` sınıfında `new ServerSocket(port)` ve `new ObjectInputStream(...).readObject()` çağrıları belirlendi; gelen mesajlar filtre/allow-list olmadan işleniyor.
-4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 + TemplatesImpl + `Runtime.exec`) **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
+4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 + TemplatesImpl + `Runtime.exec` **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
 
 ## Teknik kanıt
 
@@ -81,8 +81,18 @@ java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
 
 Pyhon komutu ile HEAD isteği başarı ile gönderildi.
 
-\
-Görselde ki gibi, gerçektende runapp.jnlp'e dosya göndermeyi başardım ve 8080 portu üzerinde dosyamı görebiliyordum. aynı şekilde jnlp dosyası içerisinde de .ser dosyamın referansı gözüküyordu. Son kod bloğu ise payload.ser'in içeriğiydi ve gerçektende sistemde gadget çalıştırıp tmp/pwned klasörünü oluşturmuştum.
+![Ekrangörüntüsü2025 11 03213652 Pn](/images/Ekrangörüntüsü2025-11-03213652.png)
+
+HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, o bize sadece `DOCUMENT_URI` 'ye HEAD işlemlerinin kayıt edildiğini gösteriyor, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. Normalde HEAD methodu ile RCE yapılmaz, uzun uzun araştırdım ancak böyle bir CVE'ye denk gelmedim hiç. 
+
+Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
+
+<img
+  src="/images/photo_5785129057623149694_y.jpg"
+  alt="Photo 5785129057623149694 Y Jp"
+  title="Photo 5785129057623149694 Y Jp"
+  style={{ width:"91%" }}
+/>
 
 Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
 
