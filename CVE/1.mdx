@@ -7,7 +7,8 @@ description: "CWE-502"
 **Reported to vendor:** reported, vendor not yet remediated\
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
-**CWE:** CWE-502
+**CWE:** CWE-502\
+**Etki Kapsamı:** `Startupv3.29.6.4 - Tüm sürümler`
 
 Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini Java `ObjectInputStream.readObject()` ile işliyor. Bu sayede **serileştirilmiş (serialized) kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** `CommonsCollections2` + `TemplatesImpl` aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
 
