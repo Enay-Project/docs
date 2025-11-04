@@ -11,7 +11,20 @@ AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
 **Etki Kapsamı:** Logo - J-Platform`Startupv3.29.6.4`\
 Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
 
-Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini Java `ObjectInputStream.readObject()` ile işliyor. Bu sayede **serialized kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** `CommonsCollections2` + `TemplatesImpl` aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
+Uygulama, JNLP dosyasında yer alan `DOCUMENT_URI` parametresini istemci sunucu akışında kullanıyor ve bu URI/uç nokta üzerinden dönen istek gövdesini HTTP metodu ne olursa olsun (HEAD dahil) okuyup `ObjectInputStream.readObject()` ile deserialize ediyor. Sonuç olarak saldırgan, kimlik doğrulaması olmadan bile **serialized** bir gövdeyi `HEAD` isteğiyle taşıyıp sunucu tarafında gadget zincirini tetikleyebiliyor ve RCE elde edebiliyor. Bu davranış, HTTP standardında HEAD yanıt gövdesinin olmamasıyla karıştırılabiliyor ancak **istek** gövdesi uygulama katmanında yanlış tasarımla okunuyorsa, HEAD de dahil olmak üzere metot agnostik bir akış ortaya çıkıyor ve deserialize zinciri aynı şekilde çalışıyor.
+
+Zincirin pratik akışı şöyle gerçekleşiyor: İstemci tarafından sunulan JNLP, `DOCUMENT_URI`’yi uygulama başlatma parametresi olarak içeriyor; bu parametre sunucu tarafındaki web bileşenine aktarılıyor ve burada ilgili handler/servlet, isteğin gövdesini **metot kontrolü yapmadan** `request.getInputStream()` ile tüketiyor. Ardından bu akış bir servis katmanına devredilip `new ObjectInputStream(in).readObject()` çağrısına ulaşıyor. Deserialize sırasında sınıf yükleme ve `readObject()`/`readResolve()` gibi giriş noktalarına bağlı bir **gadget zinciri** çalıştırılarak komut yürütme sağlanıyor. Bu nedenle saldırgan, `ysoserial` ile ürettiği bir `payload.ser` dosyasını `Content-Type: application/x-java-serialized-object` başlığıyla **HEAD** isteği gövdesine koyduğunda, uç nokta `POST`/`PUT` yerine `HEAD` ile çağrılsa bile, uygulamanın **metot-agnostik gövde okuması** yüzünden içerik deserialize edilip komut çalıştırılabiliyor. 
+
+ iki önemli belirti görüldü:
+
+1. **Küçük** boyutta yapılan `HEAD` çağrıları `200 OK` döndürüp JNLP sunabiliyor, bu, uç noktanın HEAD’i işlediğini ve gövdeyi en azından kısmen tükettiğini gösteriyor.
+2. Tam teşekküllü serialized gövde ile `HEAD`/`POST` denemeleri bazı aşamalarda **RST by peer** ya da **405 Method Not Allowed** ile sonuçlanıyor. Bu, zafiyet raporlandıktan sonra devreye alınan WAF/konfig sertleştirmesinin (ör. belirli metotlara kısıtlama veya boyut/başlık tabanlı bloklama) etkisi olarak yorumlanıyor. Ancak burada yapılan sertleştirme **kök nedeni** (güvensiz deserialize akışı) kaldırmıyor; yalnızca belirli çağrı yollarını daraltıyor. Deserialize eden kod tabanda kaldığı sürece, farklı uçlar/parametreler veya farklı HTTP akışlarıyla yeniden tetiklenebilme riski devam ediyor.
+
+   Kök neden açısından problem iki başlıkta toplanıyor:
+   - **Girdi güvenliği:** Uygulama, doğrulanmamış/veri türü zorlanmamış bir girdi akışını doğrudan `ObjectInputStream.readObject()`’a iletiyor. Sınıf allowlist’i/object filter (JEP-290) gibi savunmalar yok ya da etkisiz.
+   - **HTTP semantiği ihlali:** Handler/filtre/servlet katmanında HTTP metoduna göre gövde okuma ayrımı yapılmıyor. `doHead` veya ortak bir `service` dalında, koşulsuz `getInputStream()` tüketimi söz konusu; bu da HEAD ile bile gövde taşınmasını anlamlı ve sömürülebilir kılıyor.
+
+   Etkisi kritiktir: Kimlik doğrulaması olmadan, ağ üzerinden uzaktan kod çalıştırma mümkündür. Zafiyetin doğrulanmasında kullanılan yapılandırmada Java 8 (IcedTea-Web/javaws tarafında JNLP başlatımı), `Startupv3.34.8.3.jar`’ın istemci başlangıç rolü ve arka tarafta Apache-Coyote/Tomcat yığını yer almıştır. WAF/405 sonradan, CVE tahsisinden sonra eklenmiştir; bu, PoC’nin bazı varyantlarını engellese de **deserialize kodu** kaldırılmadığı sürece kalıcı bir çözüm değildir.
 
 ## Olay Akışı
 
@@ -27,17 +40,51 @@ runapp.jnlp içeriğinden doğruca startup.jar dosyasına yönlendirme var, ilgi
 JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectInputStream.readObject()` çağrıları gelen socket üzerinde doğrudan `readObject()` çağırıyor.
 
 ```java
-in = new ObjectInputStream(s.getInputStream());
-message = (String) in.readObject(); // doğrudan deserializasyon
-// ...
-message = (String) in.readObject(); // tekrarlanarak kullanılmakta
-if (message != null && message.equals("LBS_Hello")) {
-
-// initlisten içinde
-
-connection = ms_Instance.accept();
-in = new ObjectInputStream(connection.getInputStream());
-processor.processToken(message);
+/* 211 */     listenThread = new Thread(new Runnable()
+/*     */         {
+/*     */           public void run()
+/*     */           {
+/* 215 */             Socket connection = null;
+/* 216 */             ObjectOutputStream out = null;
+/* 217 */             ObjectInputStream in = null;
+/* 218 */             String message = null;
+/*     */ 
+/*     */             
+/*     */             while (true) {
+/*     */               try {
+/* 223 */                 connection = SocketToken.ms_Instance.accept();
+/* 224 */                 System.out.println("Connection received from " + connection.getInetAddress().getHostName() + "Port:" + connection
+/* 225 */                     .getPort());
+/* 226 */                 out = new ObjectOutputStream(connection.getOutputStream());
+/* 227 */                 out.flush();
+/* 228 */                 in = new ObjectInputStream(connection.getInputStream());
+/* 229 */                 out.writeObject("Connection successful");
+/* 230 */                 out.flush();
+/* 231 */                 System.out.println("server>- Connection successful");
+/*     */ 
+/*     */                 
+/*     */                 try {
+/* 235 */                   message = (String)in.readObject(); // UNTRUSTED DESERIALIZATION
+/* 236 */                   System.out.println("client>" + message);
+/* 237 */                   if (message.equals("LBS_Hello")) {
+/*     */                     
+/* 239 */                     out.writeObject("LBS_Hello");
+/* 240 */                     out.flush();
+/*     */                   } else {
+/*     */ 
+/*     */                     
+/*     */                     try {
+/*     */                       
+/* 246 */                       if (processor != null) {
+/* 247 */                         processor.processToken(message);
+/*     */                       }
+/*     */                     } finally {
+/*     */                       
+/* 251 */                       out.writeObject("SUCCESS");
+/* 252 */                       out.flush();
+/*     */                     }
+/*     */                   
+/*     */                   } 
 ```
 
 - Ayrıca `initListen(...)` içinde `ms_Instance.accept()` ile kabul edilen bağlantılarda yine `new ObjectInputStream(connection.getInputStream())` çağrısı ve `processor.processToken(message)` ile gelen nesnenin uygulama mantığına verildiği görülüyor.
@@ -93,10 +140,16 @@ java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
 `JLbsStartup.java` içinde tespit edilen bölüm:
 
 ```java
- 524: String docURI = getParameter("DOCUMENT_URI");
- 525: if (docURI != null)
- 527:   Method mtd3 = applet.getClass().getMethod("setDocumentURI", new Class[] { String.class });
- 530:   mtd3.invoke(applet, new Object[] { docURI });
+/*     */         try {
+/* 524 */           String docURI = getParameter("DOCUMENT_URI");
+/* 525 */           if (docURI != null)
+/*     */           {
+/* 527 */             Method mtd3 = applet.getClass().getMethod("setDocumentURI", new Class[] { String.class });
+/* 528 */             mtd3.invoke(applet, new Object[] { docURI });
+/*     */           }
+/*     */         
+/* 531 */         } catch (Throwable throwable) {}
+/*     */ 
 ```
 
 JNLP’deki `DOCUMENT_URI`, istemci başlatılırken `JLbsStartup`**den** `setDocumentURI(...)` akışıyla ana uygulamaya aktarılıyor; böylece istemci, sunucu tarafındaki ‘document’ servisine hangi URI’dan konuşacağını biliyor. Deserialization ise bu istemci kodunda değil; server-side endpoint’te gerçekleşiyor.
@@ -126,11 +179,43 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 - **22.10.2025** – CVE tahsisi
 - **22.10.2025 sonrası** – Vendor **WAF/endpoint davranışını** değiştiriyor (POST/PUT → 405; büyük gövdede RST; GET/HEAD 200 ile JNLP servis ediyor).
 
-## Saldırı yüzeyi
+# Saldırı yüzeyi
 
-Uygulamanın **JNLP akışı** sırasında istemciye verdiği `Startup.jar` içindeki `JLbsStartup ve websocket` başlatıcı, JNLP’de ilettiğim `DOCUMENT_URI` parametresini **arkada doğrudan tüketiyor**. Sunucu tarafında bu değer, istenen belge/konfigürasyonu çekmek için zincirin içine giriyor ve \*\*gelen veriyi \*\*`ObjectInputStream.readObject()`**ile deserialize eden bir kod yoluna**  temas ediyor.\
-Önceki sürümde **kimlik doğrulaması olmadan**, `/logo/smart/runapp` endpoint’i **istek gövdesini metoddan bağımsız** okuyordu ben de `HEAD`**isteğiyle**  `application/x-java-serialized-object` gövde gönderip **gadget chain**’i çalıştırdım. Yani sorun **JNLP parametresi ile sunucu tarafı deserialize** köprüsünden kaynaklanıyordu, ağ katmanında method/Content-Type fark etmeyen bir okuma vardı.\
-JNLP’deki `DOCUMENT_URI`den server-side fetch sırasında `ObjectInputStream.readObject()`’a akan veri, metod-agnostik body okuma nedeniyle uzaktan ve auth’suz tetiklenebiliyordu, **HEAD + serialized body ile RCE elde ettim.**
+- **Giriş noktası:** `/logo/smart/runapp` (JNLP üretim noktası)  HEAD/GET isteklerine yanıt veriyor.
+- **Parametre kökeni:** JNLP içindeki `DOCUMENT_URI` argümanı istemci tarafından okunuyor; sunucu tarafında bu URI’ye karşılık gelen belge/akış işlenirken gövde verisi **HTTP metodundan bağımsız** olarak elde edilebiliyor.
+- **Metot semantiği ihlali:** HTTP/1.1’de HEAD gövdesi anlamsal olarak yok sayılmalıdır; ancak uygulama ortak handler’da `getInputStream()`’i koşulsuz okuduğu için HEAD ile gönderilen serialized içerik de işlenebiliyor.
+
+## İstismar önkoşulları
+
+- **Kimlik doğrulama:** Gerekmiyor.
+- **Ağ erişimi:** internet.
+- **Gadget zinciri:**`CommonsCollections2`   
+
+## İstismar kolaylığı (Exploitability)
+
+- **Ağ vektörü (AV:N)**: Uzak ağdan tetikleniyor.
+- **Düşük karmaşıklık (AC:L)**: HEAD ile gövde kabul eden handler var
+- **Kullanıcı etkileşimi (UI:N)**: Yok.
+- **Ayrıcalık gereksinimi (PR:N)**: Yok.
+- **Güvenlik kapsamı (S:U)**: Tipik olarak aynı bileşen içinde
+- **Etkiler:**
+  - **Gizlilik (C:H):** Process yetkisiyle dosya/kimlik bilgisi sızdırma, JDBC dizeleri, erişim anahtarları.
+  - **Bütünlük (I:H):** Keyfi komut ve bytecode çalıştırma.
+  - **Süreklilik (A:H):** Hizmet kesintisi.
+- **Güvenirlik:** Aynı sürüm/sınıf yolu/gadget seti yakalandığında **yüksek**; WAF devredeyken **ayarlama** gerektirebilir (chunked, içerik türü/farklı başlıklar, boyut eşikleri, farklı metodlar).
+
+> **Not (HEAD neden çalışıyor?):** Uygulama, `doHead()`’i `doGet()/process()`’e delege ediyor veya tek bir “process” bloğu tüm metodlarda **koşulsuz** `request.getInputStream()` okuyor. Bu, standart uygulama farkından kaynaklanan bilinen bir “pitfall”; HEAD gövdeyi **okumamalı**, fakat okur ve deserialize ederse RCE’ye yol açabilir.
+
+## Neden risk yüksek?
+
+- **Kimlik doğrulamasız, uzaktan, tek paketle tetiklenebilir** bir RCE vektörü.
+- **HEAD ile bile çalışabilmesi**, klasik WAF kural setlerinin “sadece POST/PUT gövdesini incele” varsayımını bozar.
+- **Java kurumsal ekosisteminde gadget bolluğu**, pratikte **yüksek istismar olasılığı** demektir.
+
+## Kısıtlar  Çevresel faktörler
+
+- Sonradan eklenen **WAF**: Büyük/şüpheli gövde gönderiminde **RST **veya `405` döndürüyor; bu **semptomu gizler**, **kök nedeni kaldırmaz**.
+- **Class-path farklılıkları**: Bazı sürümlerde belirli gadget’lar bulunmayabilir, ancak alternatif zincirler genelde mevcuttur.
 
 ### Mitigasyon
 
@@ -145,14 +230,14 @@ HEAD    | yok          | —                                    | 200 (jnlp head
 HEAD    | 5B txt       | application/x-java-serialized-object | 200
 HEAD    | 5B txt       | application/octet-stream             | 200
 HEAD    | 100B .ser    | application/x-java-serialized-object | 200
-HEAD    | >1000B .ser  | application/x-java-serialized-object | WAF
+HEAD    | >1000B .ser  | application/x-java-serialized-object | 405
 POST    | 100B .ser    | application/x-java-serialized-object | WAF 
 POST    | 400B .ser    | application/x-java-serialized-object | WAF
 POST    | full .ser    | application/x-java-serialized-object | WAF
 PUT     | 100/400/full | application/x-java-serialized-object | 405 
 ```
 
-ancak **kök neden** (güvensiz deserialization) kod tarafında kalıcı olarak kaldırılmadıysa risk mimaride hala var kabul edilmeli.
+ancak **kök neden** kod tarafında kalıcı olarak kaldırılmadıysa risk mimaride hala var kabul edilmeli.
 
 ## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
