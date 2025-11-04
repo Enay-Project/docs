@@ -8,10 +8,10 @@ description: "CWE-502"
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
 **CWE:** CWE-502\
-**Etki Kapsamı:** `Startupv3.29.6.4 - Tüm sürümler`\
+**Etki Kapsamı:** Logo - J-Platform`Startupv3.29.6.4`\
 Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
 
-Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini Java `ObjectInputStream.readObject()` ile işliyor. Bu sayede **serileştirilmiş (serialized) kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** `CommonsCollections2` + `TemplatesImpl` aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
+Uygulamadaki `/logo/smart/runapp` uç noktası, kimlik doğrulaması olmadan gelen istek gövdesini Java `ObjectInputStream.readObject()` ile işliyor. Bu sayede **serialized kötü niyetli nesne** gönderildiğinde, bilinen **gadget zincirleri** `CommonsCollections2` + `TemplatesImpl` aracılığıyla **RCE** mümkün oluyor. İstismar, **GET/POST** yanında uygulama hatası nedeniyle **HEAD** isteği ile de tetiklenebiliyor.
 
 ## Olay Akışı
 
@@ -89,6 +89,18 @@ java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
   style={{ width:"75%" }}
 />
 
+**DOCUMENT_URI ne yapıyor?** JLbsStartup içinde JNLP parametresi `DOCUMENT_URI` okunup uygulama/applet’e `setDocumentURI(String)` ile aktarılıyor. Yani bu parametre, istemci tarafındaki ana bileşene “sunucuya hangi endpoint üzerinden bağlanacağını / doküman servisinin nerede olduğunu” bildiriyor. Dosyanın içinde bu akış net: satır ~**524**’te `getParameter("DOCUMENT_URI")` alınıyor, hemen ardından yansımayla `setDocumentURI(...)` çağrılıyor \
+`JLbsStartup.java` içinde tespit edilen bölüm:
+
+```java
+ 524: String docURI = getParameter("DOCUMENT_URI");
+ 525: if (docURI != null)
+ 527:   Method mtd3 = applet.getClass().getMethod("setDocumentURI", new Class[] { String.class });
+ 530:   mtd3.invoke(applet, new Object[] { docURI });
+```
+
+JNLP’deki `DOCUMENT_URI`, istemci başlatılırken `JLbsStartup`**den** `setDocumentURI(...)` akışıyla ana uygulamaya aktarılıyor; böylece istemci, sunucu tarafındaki ‘document’ servisine hangi URI’dan konuşacağını biliyor. Deserialization ise bu istemci kodunda değil; server-side endpoint’te gerçekleşiyor.
+
 ## Kanıtın Gözlemi
 
 Pyhon komutu ile HEAD isteği başarı ile gönderildi.
@@ -97,7 +109,7 @@ Pyhon komutu ile HEAD isteği başarı ile gönderildi.
 
 HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya girdiğimiz şey her ne olursa olsun bir önemi yok, içeride bir deserialization işlem yapılma ihtimali eğer doğru yapılandırma yoksa apache tomcat ve Java WEB applerde çok yüksek ki sunucu PUT veya DELETE gibi HTTP methodlarına izin verdiği için bu işleme çok müsait bir ortam var. HEAD İsteği ile RCE standart gereği beklenmez, ancak yanlış/gevşek implementasyonlar nedeniyle mümkün oldu.
 
-Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
+Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
 
 <img
   src="/images/photo_5785129057623149694_y.jpg"
@@ -117,7 +129,8 @@ Sonuç olarak, `python.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klas
 ## Saldırı yüzeyi
 
 Uygulamanın **JNLP akışı** sırasında istemciye verdiği `Startup.jar` içindeki `JLbsStartup ve websocket` başlatıcı, JNLP’de ilettiğim `DOCUMENT_URI` parametresini **arkada doğrudan tüketiyor**. Sunucu tarafında bu değer, istenen belge/konfigürasyonu çekmek için zincirin içine giriyor ve \*\*gelen veriyi \*\*`ObjectInputStream.readObject()`**ile deserialize eden bir kod yoluna**  temas ediyor.\
-Önceki sürümde **kimlik doğrulaması olmadan**, `/logo/smart/runapp` endpoint’i **istek gövdesini metoddan bağımsız** okuyordu ben de `HEAD`**isteğiyle**  `application/x-java-serialized-object` gövde gönderip **gadget chain**’i çalıştırdım. Yani sorun **JNLP parametresi ile sunucu tarafı deserialize** köprüsünden kaynaklanıyordu, ağ katmanında method/Content-Type fark etmeyen bir okuma vardı.
+Önceki sürümde **kimlik doğrulaması olmadan**, `/logo/smart/runapp` endpoint’i **istek gövdesini metoddan bağımsız** okuyordu ben de `HEAD`**isteğiyle**  `application/x-java-serialized-object` gövde gönderip **gadget chain**’i çalıştırdım. Yani sorun **JNLP parametresi ile sunucu tarafı deserialize** köprüsünden kaynaklanıyordu, ağ katmanında method/Content-Type fark etmeyen bir okuma vardı.\
+JNLP’deki `DOCUMENT_URI`den server-side fetch sırasında `ObjectInputStream.readObject()`’a akan veri, metod-agnostik body okuma nedeniyle uzaktan ve auth’suz tetiklenebiliyordu, **HEAD + serialized body ile RCE elde ettim.**
 
 ### Mitigasyon
 
@@ -140,8 +153,6 @@ PUT     | 100/400/full | application/x-java-serialized-object | 405
 ```
 
 ancak **kök neden** (güvensiz deserialization) kod tarafında kalıcı olarak kaldırılmadıysa risk mimaride hala var kabul edilmeli.
-
-JNLP’deki `DOCUMENT_URI`den server-side fetch sırasında `ObjectInputStream.readObject()`’a akan veri, metod-agnostik body okuma nedeniyle uzaktan ve auth’suz tetiklenebiliyordu, **HEAD + serialized body ile RCE elde ettim.**
 
 ## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
