@@ -193,6 +193,53 @@ Katılımcılardan birinin (veya birkaçının) konuşmanın hiçbir şekilde ge
 
 Bu örnekte Enay, gerçek kimliğiyle bağlantılı olmak istemeyen biriyle konuşuyor (katılımcı gizli profil kullanıyor). Konuşmanın doğası gizli bilgi gibi tartışmalı konular içerebilir. Anonim sohbet sağlamak için kullanıcı kimlikleri ve IP bağlantısı kesinlikle olmamalıdır. Ayrıca kullanıcı kimliği olmaması sayesinde kişi, anlık olarak tek kullanımlık kimlikler oluşturabilir ve her yeni konuşmada farklı bir anonim kimlik kullanabilir.
 
-## Sonuç
+# Gizlilik
 
-Farklı ihtiyaçlarımıza göre sohbetlerimizi bölümlendirerek, özel tutmak istediğimiz konuların gerçek kimliklerimizle kesişmesini önleyebiliriz.
+Öncelikle şunu söylemem lazım **Gizlilik ≠ Anonimlik.**
+
+- Anonimlik: Ne yaptığını biliyorlar ama kim olduğunu bilmiyorlar.
+- Gizlilik: Kim olduğunu biliyorlar ama ne yaptığını bilmiyorlar.
+
+Gizlilik denince aklınıza en yuvarlama tahmin görünmez olmak geliyordur, bazılarımızın kafasına da görüneyim ama görünen kişi ben olmasın derdinde. Benim burada anlatacağım şeyler sizi görünmez yapamaz ama ayak izinizi minimuma indirir, ikisini birden yapmanız için yazıyorum. Ayak izini saklaman için ipni görünmez yapman lazım en başta, bunu tabi ki Tor ile sağlayacaksın.  Kısaca şunlara dikkat et: Tor ağına bağlan, hiçbir sitede gerçek bilgilerini paylaşma, ticaretlerinde Monero kullan, güvenme.
+
+## Neden Tor
+
+Kullanıcı ile sunucu arasındaki tünelin 6’da 5’i kullanıcıyı bilmez. Burada sadece relay’lerden değil, aralarındaki bağlantılardan da bahsediyorum. Benzer şekilde, yolun 6’da 5’i hedefi de bilmez.\
+Onion servisinin guard düğümü, trafik desenlerinden onion servisi için guard olduğunu anlayabilir. Guard kendi IP adresini bilir, ancak hangi onion servisine guard’lık yaptığını bilmez. Bu da kimsenin hedef onion adresini bilmediği anlamına gelir.\
+\
+Tor’un kullandığı DNS benzeri süreç güvenlidir (onion’un Introduction Point’lerini DHT’de bul, bir IP’ye bağlan, onion’a hangi Rendezvous Point’in kullanılacağını bildir, iki taraf da RP’ye bağlanır). Hiç kimse DHT’de hangi onion’un arandığını bilmez; cevabı tutan relay bile bilmez. DNS buna kıyasla gülünç derecede güvensizdir. DNS sunucusu her şeyi bilir (kullanıcı, soru, cevap). Kullanıcı ile sunucu arasındaki herhangi bir güvensiz bağlantı noktası her şeyi ifşa eder. DNS sunucusu istediği zaman yanıtları sahteleyebilir ya da sansürleyebilir.\
+\
+Bir zırvalık varya hani, vpne veya Tor'a bağlansan bile modemin geçmişi seni ele verir, lan yarram o zaman makine öğrenimi tor ağına bağlı herkesi hop diye listeler tutuklatırdı.\
+Deminde anlattığım gibi tor sayesinde kişiler hem kullanıcıyı hemde hedefi kestiremez, modemin logu seni sadece başka bir ip ye bağlı olduğunu görür, o ip nereye bağlı işte onu kestiremez, onu ancak vpn servisi log verirse görebilir. Ama torda böyle bir muhattapları yok çünkü torun kurucuları bile kim ne yapıyor bilmiyor. Çünkü 6 farklı ip ye bağlı bir sistemin içindesin.
+
+![Resim 2025 10 17 011545658 Pn](/images/resim_2025-10-17_011545658.png)
+
+Bir onion servisine başarıyla bağlandığını görüyorsan, gerçekten bağlanmışsındır ve bunu güvenli şekilde yapmışsındır. TLS böyle bir garanti sunmaz. Güncel tarayıcıların otomatik filtreleme sayesinde tıkladığın bir bağlantı güvensizse tarayıcın ya uyarı verir yada siteyi hiç açmaz. Eskiden tarayıcılar bu kadar güvenli değilken tıkladığın bir link senin cihazına senden habersiz dosya atabiliyor, komut çalıştırabiliyordu.
+
+### Monero
+
+Monero, 2014 yılında piyasaya çıkan ve gizliliğe odaklanan bir **kripto para birimi**dir. Bitcoin gibi blockchain teknolojisini kullanır, ancak onu özel yapan şey tamamen **anonimlik ve izlenemezlik** üzerine kurulmuş olmasıdır.\
+Bitcoin veya Ethereum gibi kripto paralarda tüm işlemler herkesin görebileceği şekilde blok zincirinde tutulur.\
+Birisi senin cüzdan adresini bilirse, gönderdiğin veya aldığın **her miktarı** görebilir.\
+Monero’da ise bu bilgi **şifrelenmiştir**. Yani dışarıdan bakan biri:
+
+- Kimin kime para gönderdiğini,
+- Ne kadar gönderildiğini,
+- Hangi adresten çıktığını\
+  asla göremez.
+
+  <img
+    src="/images/görsel_2025-10-21_200655679.png"
+    alt="Görsel 2025 10 21 200655679 Pn"
+    style={{ width:"82%" }}
+  />
+
+  \
+  \
+  NOKYC servisler\
+  VDS - [cockbox.org](http://cockbox.org) // Bunun mail hizmeti güzel ama kapattı sanırım bi kontrol edersiniz, vincent kralın sitesi.\
+  coin - https://retoswap.com // Bu çok sağlam bi hizmet. bi göz at.\
+  coin exchanger - https://exchanger.infinity.taxi // Sorunsuz\
+  chat - https://simplex.chat // Bunu anlatmıştım - [TIKLA](https://ofsec.visec.net.tr/Visec/DarkWeb/safenet#anonymous-chat-örneği)\
+  vpn - https://mullvad.net // https://xeovo.com // ikiside iyidir fiyatlarda benzer.\
+  pazar- https://xmrbazaar.com // Birçok alanda birçok hizmet alabilirsin monero ile.
