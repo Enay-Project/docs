@@ -15,12 +15,7 @@
         "groups": [
           {
             "group": "Başlangıç",
-            "pages": [
-              "index",
-              "misyon",
-              "yolhar",
-              "map"
-            ]
+            "pages": ["index", "misyon", "yolhar", "map"]
           }
         ]
       },
@@ -29,9 +24,7 @@
         "groups": [
           {
             "group": "Genel",
-            "pages": [
-              "Visec/Baslangic"
-            ]
+            "pages": ["Visec/Baslangic"]
           },
           {
             "group": "Dark Web",
@@ -50,23 +43,16 @@
             ]
           },
           {
+            "group": "Web3",
+            "pages": ["Visec/Web3/Sonic", "Visec/Web3/ecdsa"]
+          },
+          {
             "group": "CTI",
-            "pages": [
-              "Visec/cti/forumlar"
-            ]
+            "pages": ["Visec/cti/forumlar"]
           },
           {
             "group": "CTF",
-            "pages": [
-              "Visec/ctf/mrrobot"
-            ]
-          },
-          {
-            "group": "Web3",
-            "pages": [
-              "Visec/Web3/Sonic",
-              "Visec/Web3/ecdsa"
-            ]
+            "pages": ["Visec/ctf/mrrobot"]
           }
         ]
       },
@@ -75,15 +61,11 @@
         "groups": [
           {
             "group": "Bilgilendirme",
-            "pages": [
-              "Tools/bilgilendirme"
-            ]
+            "pages": ["Tools/bilgilendirme"]
           },
-                    {
+          {
             "group": "Cracking",
-            "pages": [
-              "Tools/cracking"
-            ]
+            "pages": ["Tools/cracking"]
           }
         ]
       },
@@ -92,9 +74,7 @@
         "groups": [
           {
             "group": "CVE-2025-12059",
-            "pages": [
-              "CVE/1"
-            ]
+            "pages": ["CVE/1"]
           }
         ]
       }
@@ -128,13 +108,7 @@
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
   "footer": {
     "socials": {
