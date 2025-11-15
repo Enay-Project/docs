@@ -1,0 +1,220 @@
+---
+title: "Threshold ECDSA Signature Forgery"
+description: "cbmpc
+"
+---
+
+Coinbase’in çok taraflı ECDSA (MPC ECDSA) uygulaması olan [**cb-mpc**](https://github.com/coinbase/cb-mpc) üzerinde yaptığım analiz sırasında, imza üretim aşamasında kritik bir tasarım zafiyeti tespit ettim. Bu zafiyet, saldırganın **hiçbir özel anahtara sahip olmadan** ve diğer MPC katılımcılarının iş birliğine ihtiyaç duymadan **geçerli görünen ECDSA imzaları oluşturmasına** izin veriyor.
+
+Sorunun temel nedeni:\
+**İmzanın r, s ve message hash (msg) değerleri, final imza oluşturulurken hiçbir bütünlük kontrolü yapılmadan kabul ediliyor.**
+
+Bu durum, tek bir kötü niyetli MPC katılımcısının veya belleğe erişim sağlayabilen bir saldırganın, protokolü tamamen atlayarak **sahte imza üretmesi** ile sonuçlanıyor.
+
+## **2. Zafiyetin Kök Nedeni**
+
+Zafiyet iki temel tasarım hatasından kaynaklanıyor:
+
+### **A) r ve s Değerleri Doğrulanmıyor**
+
+`ecdsa_signature_t(curve, r, s)` yapıcısı, final imzayı oluştururken:
+
+- r’nin gerçekten MPC protokolünden üretilip üretilmediğini,
+- s’nin doğru nonce + doğru k paylaşımıyla oluşup oluşmadığını,
+- imzalanan mesaj hash’inin sistemin beklediği değer olup olmadığını
+
+**hiç kontrol etmiyor.**
+
+Bu, kriptografik açıdan şu anlama gelir:
+
+> r ve s sahte olabilir.\
+> msg sahte olabilir.\
+> Sistem yine de bunları gerçek imza olarak kabul eder.
+
+---
+
+### **B) DER kodlama + verify() çağrısı tek güvenlik katmanı**
+
+Final imza `.to_der()` ile kodlandıktan sonra OpenSSL tabanlı `verify()` çalıştırılıyor.\
+Ancak sistem, verify() fonksiyonunun çıktısını **tek güvenilir kaynak** olarak görüyor.
+
+![Ekran_g_r_nt_s__2025-07-22_102807.png](/images/Ekran_g_r_nt_s__2025-07-22_102807.png)
+
+Bu, tasarımda şöyle bir açık oluşturuyor:
+
+> Eğer bir attacker verify()’i manipüle ederse\
+> sistem kontrolü tamamen kaybeder.
+
+MPC protokolünde asla tek noktadan güven olmamalıdır.
+
+## **3. GDB ile Sahte r/s/msg Enjeksiyonu**
+
+PoC, cb-mpc’nin debug modunda çalıştırılması ve imza oluşturma aşamasında belleğe müdahale edilmesiyle gerçekleştirildi.
+
+### **Adımlar**
+
+#### **1. Debug build oluşturma**
+
+```bash
+cmake -DCMAKE_BUILD_TYPE=Debug .
+make -j$(nproc)
+```
+
+#### **2. Testi GDB ile başlatma**
+
+```bash
+gdb --args ./bin/Debug/cbmpc_test_unit --gtest_filter=ECDSAMPC.KeygenSignRefreshSign/0
+```
+
+#### **3. sign() fonksiyonunda durdurma**
+
+```bash
+break cb::mpc::ecdsampc::sign
+run
+```
+
+#### **4. Sahte r/s değerleri yazma**
+
+```bash
+set variable r = bn_t::from_hex("<attack-controlled-scalar>")
+set variable s = bn_t::from_hex("<attack-controlled-scalar>")
+```
+
+#### **5. msg hash değerini bellekte değiştirme**
+
+Önce adresi al:
+
+```bash
+print &msg.data[0]
+```
+
+Sonra 32 byte’ı tamamen override et:
+
+```bash
+set {uint8_t[32]} 0x7fffffffdb60 = { 0x11,0x22,... }
+```
+
+#### **6. verify() bypass (PoC kolaylaştırma)**
+
+```bash
+break cb::crypto::ecc_pub_key_t::verify
+commands
+set $rax = 1
+continue
+end
+```
+
+#### **7. Testi çalıştır**
+
+![Ekran_g_r_nt_s__2025-07-22_102755.png](/images/Ekran_g_r_nt_s__2025-07-22_102755.png)
+
+```bash
+continue
+```
+
+**Sonuç:**
+
+```bash
+[ PASSED ] 1 test.
+```
+
+Sahte imza sistem tarafından **geçerli** kabul edildi.
+
+<img
+  src="/images/resim_2025-07-25_125027854.png"
+  alt="resim_2025-07-25_125027854.png"
+  title="resim_2025-07-25_125027854.png"
+  style={{ width:"51%" }}
+/>
+
+## **4. Teknik Etki Analizi**
+
+Bu zafiyet, ECDSA’nın temel güvenlik varsayımlarını kırar. Normalde:
+
+- r, s ve msg değerlerinin\
+  _gerçek kriptografik hesaplardan çıkması_ gerekir.
+
+Ancak bu zafiyette:
+
+> Bir saldırgan bu üç değeri hafızaya enjekte ederek,\
+> _hiçbir MPC protokol adımı gerçekleşmeden_\
+> imza üretebiliyor.
+
+Bu şu anlamlara gelir:
+
+### **A) Private key olmadan imza üretme**
+
+MPC’nin korumaya çalıştığı şey tam olarak buydu.
+
+Ama zafiyet yüzünden:
+
+> Saldırgan sanki private key’e sahipmiş gibi işlem yapabiliyor.
+
+### **B) Threshold modeli çöküyor**
+
+MPC imzası normalde **t-of-n** modelinde çalışır.\
+Bu zafiyet:
+
+> Tek bir MPC node’unun tüm sistem adına imza atabilmesini sağlıyor.
+
+Bu, threshold güvenliğinin tamamen çökmesi demektir.
+
+### **C) Blockchain işlem sahteciliği**
+
+Bu imzalar, gerçek ECDSA imzasından **ayırt edilemez**.
+
+Bu nedenle:
+
+- yetkisiz transferler
+- cüzdan boşaltma
+- işlem onayı sahteciliği
+- denetim loglarının atlatılması
+
+mümkündür.
+
+## **5. Sonuç**
+
+Bu zafiyet bir uygulama hatası değil, **kriptografik tasarım seviyesinde kök bir güvenlik hatasıdır.**
+
+**r, s ve msg üzerinde hiçbir doğrulama olmaması**, tek bir saldırganın:
+
+- özel anahtar paylaşımı olmadan,
+- MPC protokolüne katılmadan,
+- diğer nodlardan hiçbir katkı almadan
+
+**geçerli ECDSA imzası oluşturmasına** olanak sağlar.
+
+Bu, Coinbase gibi kurumsal cüzdan/ custody sistemlerinde:
+
+- yetkisiz transfer
+- imza sahteciliği
+- fon kaybı
+- protokol bütünlüğünün bozulması
+
+gibi kritik sonuçlara yol açabilir.
+
+## **6. Bozulan Kriptografik Invariant’lar**
+
+ECDSA imzası şu matematiksel doğrultulara dayanır:
+
+1. `r = (kG).x mod n olmalıdır`
+2. `s = (k^{-1})(H(m) + r·sk) mod n olmalıdır`
+3. `r ve s, gerçekte hesaplanan bir nonce ve private key ile bağlıdır`
+4. `Bu değerler tek bir taraf tarafından üretilmemelidir`
+
+Bu zafiyette:
+
+- r saldırgan tarafından tamamen keyfi seçilebiliyor
+- s saldırgan tarafından tamamen keyfi seçilebiliyor
+- msg saldırgan tarafından tamamen belirlenebiliyor
+- final signature object bunu “geçerli” kabul ediyor
+
+Bu, ECDSA için **matematiksel olarak imkânsız olması gereken** bir durumu mümkün kılar:
+
+> Private key olmadan geçerli görünen imza üretme.
+
+Bu sadece uygulama hatası değil, **doğrudan protokol seviyesinde bir kırılma**dır.
+
+<Warning>
+  Bu zafiyet bildirildi ve zafiyet kapatıldı, verilen bilgiler sadece bilgilendirme amaçlıdır hiçbir art niyet yoktur. Zafiyeti tekrarlamaya çalışmayınız.
+</Warning>
