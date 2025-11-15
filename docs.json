@@ -64,7 +64,8 @@
           {
             "group": "Web3",
             "pages": [
-              "Visec/Web3/Sonic"
+              "Visec/Web3/Sonic",
+              "Visec/Web3/ecdsa"
             ]
           }
         ]
