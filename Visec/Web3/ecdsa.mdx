@@ -1,7 +1,6 @@
 ---
 title: "Threshold ECDSA Signature Forgery"
-description: "cbmpc
-"
+description: "cbmpc "
 ---
 
 Coinbase’in çok taraflı ECDSA (MPC ECDSA) uygulaması olan [**cb-mpc**](https://github.com/coinbase/cb-mpc) üzerinde yaptığım analiz sırasında, imza üretim aşamasında kritik bir tasarım zafiyeti tespit ettim. Bu zafiyet, saldırganın **hiçbir özel anahtara sahip olmadan** ve diğer MPC katılımcılarının iş birliğine ihtiyaç duymadan **geçerli görünen ECDSA imzaları oluşturmasına** izin veriyor.
@@ -37,8 +36,6 @@ Bu, kriptografik açıdan şu anlama gelir:
 
 Final imza `.to_der()` ile kodlandıktan sonra OpenSSL tabanlı `verify()` çalıştırılıyor.\
 Ancak sistem, verify() fonksiyonunun çıktısını **tek güvenilir kaynak** olarak görüyor.
-
-![Ekran_g_r_nt_s__2025-07-22_102807.png](/images/Ekran_g_r_nt_s__2025-07-22_102807.png)
 
 Bu, tasarımda şöyle bir açık oluşturuyor:
 
@@ -79,6 +76,10 @@ run
 set variable r = bn_t::from_hex("<attack-controlled-scalar>")
 set variable s = bn_t::from_hex("<attack-controlled-scalar>")
 ```
+
+![Ekran_g_r_nt_s__2025-07-22_102807.png](/images/Ekran_g_r_nt_s__2025-07-22_102807.png)
+
+> GDB üzerinde `cb::mpc::ecdsampc::sign` fonksiyonuna yerleştirilen breakpoint. Bu noktada MPC imza üretimi durdurularak r, s ve msg değerlerine saldırgan kontrollü enjeksiyon yapılmasına olanak sağlar.
 
 #### **5. msg hash değerini bellekte değiştirme**
 
