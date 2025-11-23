@@ -44,7 +44,7 @@
           },
           {
             "group": "Web3",
-            "pages": ["Visec/Web3/Sonic", "Visec/Web3/ecdsa"]
+            "pages": ["Visec/Web3/Sonic"]
           },
           {
             "group": "CTI",
