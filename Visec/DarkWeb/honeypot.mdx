@@ -1,0 +1,168 @@
+---
+title: "Honeypot"
+description: ":p"
+---
+
+Selam, Enay ben. Yazıma başlarken bunun sadece kişisel gözlemlerim olduğu ve **bunları ispatlamaya çalışmayacağımı bilmenizi isterim**.
+
+Honeypot nedir sorusunu sormadan önce sizin zaten bunu bildiğinizi varsayıyorum, bilmiyorsanız google amcadan ufak bir bilgilendirme yapayım "Bal küpleri, bilgi sistemlerine yetkisiz erişim sağlamaya çalışan saldırganlar veya kullanıcılar hakkında istihbarat toplamak amacıyla oluşturulan tuzak sistemlerdir. Bu sistemler, meşru ağ hizmetlerini taklit ederek saldırganların ilgisini çeker ve faaliyetlerini ayrıntılı biçimde kaydeder."
+
+Honeypotlar ile günlük hayatta sıkça karşılaşıyoruz, çoğunu övüyoruz ve kullanıyoruz belki.
+
+## BRAVE
+
+Yazının ilk başlığı brave olsun istedim, bunu bilmeyen kalmasın diye. 2021 yılınca bir cve recordu yayınlandı incelemek için [tıklayın](https://www.cve.org/CVERecord?id=CVE-2021-21323) bu cve recordu bize şunu diyor aslında: Tor penceresinde CNAME adblocking sırasında Tor proxysi dışına yönlendirilen DNS isteklerini tetiklemiş ve bu sırada ortaya çıkan domain ve gerçek IP bilgileri  DNS resolverlar tarafından görülebilir hale gelmiş. Aslında bu yapılanma ve yazılım bize şunu söyüyor. Senin ip bilgin, uğradığın siteler ve yaptığın işlemler zaten brave tarafından gözüküyordu. Bu yazdıklarımı abartı bulabilirsiniz, brave bunu hiçte abartı bulmuyor. Savunma mekanizması olarakta şu cevabı veriyor.
+
+<img
+  src="/images/photo_5904762871982263606_y.jpg"
+  alt="photo_5904762871982263606_y.jpg"
+  title="photo_5904762871982263606_y.jpg"
+  style={{ width:"50%" }}
+/>
+
+Adamın kendisi zaten diyorki "gizlilik kaygın varsa bizi değil tor browseri tercih et"
+
+Eğer tüm bunlara rağmen brave anonimlik sağlıyor diyorsan, bende derim ki buna anonimlik diyorsan, DNS’ten tut zamanlamaya kadar her şeyin izole olması gerekir derim. Ama şu özellik açıkken anonim, bu açıkken değil gibi cümleler duyuyorsam, güler geçerim. Anonimlik bir mod değil, bir tasarım kararıdır.
+
+## Honeypotları nasıl tespit ederim?
+
+Ben honeypot tespit ederken checklist’le başlamıyorum. Çünkü günümüzde en iyi honeypotlar zaten temiz görünenler. Benim yaklaşımım daha basit ama daha rahatsız edici sorular sormak üzerine.
+
+İlk baktığım şey şu oluyor: **Bu sistem benden ne istiyor?**\
+Gerçekten ihtiyacı olanı mı alıyor, yoksa ileride lazım olur diye fazladan veri mi topluyor? Bir servis sana bedava, hızlı ve güvenli”olduğunu söylüyorsa, burada durup bir nefes alıyorum. Çünkü güvenlikte bedava olan şey genelde üründür, kullanıcı değil.
+
+İkinci olarak, **log ve görünmezlik ilişkisine** bakıyorum.\
+Bir sistem “log tutmuyoruz” diyebilir, buna itirazım yok. Ama sistem mimarisi gereği bu logları tutabilecek konumdaysa, mesele log tutup tutmaması değildir. Mesele, **isterse tutabilir olmasıdır**. Honeypot dediğimiz şey tam olarak bu alanda yaşar.
+
+Son olarak şunu soruyorum: **Bu sistemi kim, neden ve hangi motivasyonla geliştirmiş?**\
+Para kazanma modeli, ortaklıklar, reklam, gizlilik... ve  GİZLİLİK kelimesinin pazarlamada ne kadar kullanıldığı… Bunların hepsi teknik olmayan ama çok şey anlatan detaylar. Çünkü kimse milyarlarca dolarlık bir ürünü sadece iyi niyetle ayakta tutmaz.
+
+## Anonimlik ve Gizlilik Sağlayanlar
+
+Genel olarak tek tek isim vermeyeceğim çokça var bunlardan. Kısaca en bilindikleri ve niye honeypot olduklarını yazacağım.
+
+DuckDuckGo - Bir arama motoru, arama niyetini görür. IP’yi tutmasa bile **davranış kalıplarını** görür.\
+\
+ProtonMAİL ve VPN - metadata, kim kime, ne zaman yazdı bilgisi , spam-abuse-AI training gibi gerekçelerle tarama mail kısmında var, mail protokolu başlı başına gizlilik düşmanıdır zaten. VPN kısmında ise trafiğini görüyor, zamanlamayı görüyor, çıkış IP’ni kontrol ediyor. Log tutmamak bir **politika beyanıdır**, hiçbir şekilde garanti değil.
+
+Signal - \*\*Telefon numarası zorunluluğu, \*\*Metadata’nın tamamen yok olmaması, Signal şunu açık açık kabul eder: kimin kiminle konuştuğu bilgisi tamamen sıfır değil, zamanlama bilgisi var, kullanıcı grafiği çıkarılabilir.  Signal bunları saklamıyor zaten açık açık dile getiriyor. Benim size şuanda kullanın diyebileceğim tek uygulama simplex. _Bugünkü mimarisiyle, metadata minimizasyonu açısından SimpleX daha tutarlı bir yaklaşım sunuyor._
+
+## Tehdit Modelini Belirle
+
+Anonimlik kısmında en sık yapılan hata, **kime karşı anonim olmak istendiğinin hiç sorulmamasıdır**. Oysa anonimlik dinamik bir durum değil, **statik bir savunmadır**. Tehdit modeli olmadan anonimim oldum demek, kilidi olmayan bir kapıya güvendeyim yazısı asmaktan farksızdır.
+
+Şunu sormadan anonimlikten bahsedemeyiz:\
+**Kimden saklanıyorsun?**
+
+Örneğin:
+
+Rastgele bir kullanıcıya karşı IP gizlemek yeterli _olabilir_.
+
+- Bir şirketten saklanmak için metadata minimizasyonu gerekir.
+- Devlet seviyesinde bir tehditte ise ağ, zamanlama, korelasyon ve operasyonel hatalar devreye girer.
+
+Bu yüzden “X uygulaması anonim mi?” sorusu yanlış bir sorudur.\
+Doğru soru şudur:\
+**“X uygulaması, benim tehdit modelimde yeterli mi?”**
+
+Tehdit modeli belirlenmeden yapılan araç seçimleri genellikle bir **güvenlik fetişizmi**ne dönüşür. Araç kutsanır, mimari sorgulanmaz. Oysa aynı araç, farklı bir tehdit modelinde kullanıcıyı korumak bir yana, **yanlış güven hissi** yaratabilir. Daha da önemlisi, çoğu gizlilik aracı kullanıcıyı tehdit modelinin dışına çıkaracak varsayımlarla tasarlanır. Kullanıcının hata yapmayacağı, yanlış yapılandırma kullanmayacağı, zamanlama hatası oluşturmayacağı varsayılır. Gerçekte ise güvenlikte en zayıf halka her zaman **kullanıcıdır**.
+
+Bu yüzden anonimlik;\
+bir uygulama, bir ayar ya da bir mod değildir.\
+Anonimlik, **tehdit modeline göre tasarlanmış bir sistemler bütünü**dür.
+
+Tehdit modelin yoksa:
+
+- Kullandığın araçların seni neye karşı koruduğunu bilemezsin.
+- Korunmadığın alanları fark edemezsin.
+- Ve en kötüsü, anonim olduğunu sanırsın.
+
+Anonimlik, ancak **neye karşı savunma yaptığını bildiğinde** başlar.
+
+Mesela aşşağıda verdiğim tablo gibi çıkarımlarda bulunabilirsin.
+
+| Tehdit Aktörü             | Amaç                             | Teknik Yetkinlik | Tipik Yöntemler                   | Basit Önlem Yeterli mi? |
+| :------------------------ | :------------------------------- | :--------------- | :-------------------------------- | :---------------------- |
+| Sıradan Kullanıcı         | Kim olduğunu öğrenmek            | Düşük            | IP bakma, link gönderme           | Evet                    |
+| Platform / Şirket         | Davranış analizi, profil çıkarma | Orta             | Metadata, zamanlama, fingerprint  | Hayır                   |
+| Reklam ve Veri Brokerları | Kimlik eşleştirme                | Orta             | Cross-site tracking, korelasyon   | Hayır                   |
+| OSINT Araştırmacısı       | Kimlik çözümleme                 | Orta–Yüksek      | Sosyal grafik, zamanlama          | Çoğu zaman hayır        |
+| Devlet veya Kolluk        | Kimlik tespiti                   | Yüksek           | ISP kayıtları, trafik korelasyonu | Hayır                   |
+| İstihbarat Seviyesi       | Sürekli izleme                   | Çok Yüksek       | Network-level korelasyon          | Pratikte hayır          |
+
+---
+
+### Sıradan Kullanıcılara Karşı
+
+Bu seviyede tehdit, teknik olarak güçlü olmayan bireylerdir. Amaçları genellikle kim olduğunu anlamak ya da IP gibi basit bilgilere ulaşmaktır.
+
+Bu tehdit modelinde, **temel ağ gizleme araçları** çoğu zaman yeterlidir. Örneğin:
+
+- VPN benzeri yazılımlar IP seviyesinde temel bir ayrım sağlar.
+- Uçtan uca şifreli mesajlaşma uygulamaları içerik gizliliğini korur.
+
+Burada anonimlik, genellikle “ilk bakışta kimliğin görünmemesi” anlamına gelir. Çoğu kullanıcının anonimlik algısı bu seviyede şekillenir.
+
+### Platformlar ve Şirketlere Karşı
+
+Karşındaki aktör bir birey değil, bir servistir. Amaçları kim olduğunu tek tek bulmak değil; **davranışını analiz etmek**tir.
+
+Bu noktada sadece VPN kullanmak anlamsızlaşır. Çünkü:
+
+- VPN IP’yi gizleyebilir
+- Ama uygulama içi metadata üretimi devam eder
+
+Bu tehdit modelinde anlamlı olan örnekler:
+
+- Metadata’yı minimize etmeyi hedefleyen mesajlaşma mimarileri
+- Kalıcı kullanıcı hesabı gerektirmeyen sistemler
+
+Burada araç seçimi, “şifreli mi?” sorusundan çok “ne kadar iz bırakıyor?” sorusuna göre yapılır.
+
+### Reklam Ağları ve Veri Brokerlarına Karşı
+
+Bu aktörler tek bir yazılıma bakmaz. Farklı servislerden gelen sinyalleri birleştirir. Bu yüzden tek bir araç **hiçbir zaman yeterli değildir**.
+
+Örneğin:
+
+- VPN kullanmak IP’yi gizler ama cihaz veya tarayıcı davranışı eşleşebilir.
+- Gizlilik odaklı bir tarayıcı kullanmak faydalıdır ama tek başına çözüm değildir.
+
+Bu seviyede anonimlik, tek bir yazılım değil; **bağlamların ayrılması** fikrine dayanır. Aynı kimliğin her yerde tekrar edilmesi, en büyük risktir.
+
+### OSINT Araştırmacılarına Karşı
+
+Bu noktada teknik araçlardan çok **kullanım biçimi** belirleyici olur. OSINT tarafında:
+
+Dil kullanımı, Zamanlama, Davranış tutarlılığı gibi şeyler ön plana çıkar.
+
+Bu seviyede örnek olarak:
+
+Metadata’yı azaltan uygulamalar kullanılsa bile kullanıcı aynı davranış kalıplarını tekrar ediyorsa anonimlik zayıflar. Yani burada “şu yazılımı kullan” demek tek başına anlamlı değildir, araçtan çok **operasyonel disiplin** konuşur.
+
+### Devlet ve Kolluk Kuvvetlerine Karşı
+
+Bu tehdit modelinde oyun değişir. Karşındaki aktör:
+
+- Servis sağlayıcılara erişebilir
+- Ağ seviyesinde veri toplayabilir
+
+Bu seviyede:
+
+- VPN gibi çözümler tek başına anlamlı değildir
+- Sadece uygulama seçimiyle anonimlik sağlanamaz
+
+Burada kullanılan araçlar, **ağ anonimliği üzerine tasarlanmış mimariler** olmak zorundadır. Ama bu bile mutlak anonimlik anlamına gelmez; sadece risk azaltımı sağlar.
+
+### İstihbarat Seviyesi Aktörlere Karşı
+
+Bu seviye çoğu kullanıcı için pratik bir hedef değildir. Uzun vadeli, hedefli ve çok katmanlı izleme söz konusudur.
+
+Bu noktada:
+
+- “Hangi yazılımı kullanmalıyım?” sorusu yanlış sorudur
+- Çünkü hiçbir tekil araç bu tehdidi tamamen bertaraf edemez
+
+Bu seviyede anonimlik, bir araç değil; **süre ve dayanıklılık** meselesidir.
+
+---
