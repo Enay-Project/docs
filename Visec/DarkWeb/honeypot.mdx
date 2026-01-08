@@ -49,7 +49,7 @@ Signal - \*\*Telefon numarası zorunluluğu, \*\*Metadata’nın tamamen yok olm
 
 ## Tehdit Modelini Belirle
 
-Anonimlik kısmında şu kısmı atlıyorsunuz, \*\*kime karşı anonim olmak istendiğini düşünüyormusunuz? \*\*Oysa anonimlik dinamik bir durum değil, **statik bir savunmadır**. Tehdit modeli olmadan anonimim oldum demek, kilidi olmayan bir kapıya güvendeyim yazısı asmaktan farksızdır.
+Anonimlik kısmında şu kısmı atlıyorsunuz, \*\*kime karşı anonim olmak istendiğini düşünüyormusunuz? \*\*Oysa anonimlik dinamik bir durum değil, **statik bir savunmadır**. Tehdit modeli olmadan anonimim oldum demek, kilidi olmayan bir kapıya güvendeyim yazısı asmaktan farksızdır. sadece kendi egonu tatmin edersin.
 
 Şunu sormadan anonimlikten bahsedemeyiz:\
 **Kimden saklanıyorsun?**
@@ -166,3 +166,46 @@ Bu noktada:
 Bu seviyede anonimlik, bir araç değil; **süre ve dayanıklılık** meselesidir..
 
 ---
+
+# Peki Ne Kullanmam Gerek?
+
+Burada devreye kişisel tecrübelerimden çok gerçekten bu işin içinde ve OPSEC süreçlerini uygulayan, uyguladığı için bağı ağrımayan abilerime danışıp fikir almamdan yola çıkacağız, ben gündelik hayatımda bir opsec meraklısı değilim, bunu gerektirecek bir durumun içinde değilim çünkü ama şimdi söyleyeceklerim gerçekten vaktiyle polisle başı derde girmiş ve kanıt yetersizliği ile temize çıkmış abilerden tavsiyeler olacak. 
+
+<Danger>
+  **Bunları sizinle paylaşma amacım kolluk kuvvetlerini veya devlet güçlerini yanıltacak hareketler yapın diye değil, tamamen bilgilendirme amaçlıdır. **
+</Danger>
+
+### Qubes OS
+
+Eğer buraya kadar anlattığım tehdit modellerinde en alt sıraya, yani devletler ve istihbarat servisleri seviyesine kadar indiyseniz; artık hiçbir uygulama veya işletim sistemi sizi kurtarmaz. İşte tam bu noktada karşımıza Qubes OS çıkıyor. 
+
+Sizin o çok güvendiğiniz Windows veya Linux dağıtımlarında bir pdf dosyasında zararlı bir script varsa, geçmiş olsun bütün sisteminiz, dosyalarınız ve kimliğiniz artık saldırganın elindedir. Qubes ise buna sadece gülüp geçer. Çünkü bu sistem her şeyi birbirinden bağımsız sanal makinelere, yani AppVM’lere böler. Şöyle hayal edin: Banka işlemlerinizi yaptığınız dünya farklıdır, şüpheli dosyaları açtığınız dünya farklıdır, internette anonim takıldığınız Whonix tabanlı dünya bambaşkadır. Bir kutu yansa bile yangın asla diğerine sıçrayamaz. Tarayıcından bir exploit mi yedin? Sadece o anki tarayıcının olduğu sanal makine etkilenir. 
+
+Tam bir konfor düşmanı, ben 2025 yazında kurup kullanmayı denedim, kullanılıyor ama herşey çok uğraştırıcı ve hali hazırda bir tehdit faktörüm olmadığı için bana çok gereksiz geldi. Bir dosyayı bir alandan diğerine kopyalamak bile bir prosedürdür. Ama zaten anonimlik ve güvenlik dediğin şey, konforun bittiği yerde başlar.
+
+Eğer sadece film izleyip sosyal medyada takılan biriysen Qubes senin için fanteziden öteye geçmez. Ama eğer gerçek anonimlik senin için bir tercih değil zorunluluksa ve "benim sistemimde benden habersiz kuş uçamaz" diyorsan, Qubes senin tek çıkış yolundur. Yazının başında dediğim gibi, anonimlik bir mod değil, bir tasarım kararıdır. Qubes OS bu kararın en radikal ve en tutarlı halidir. 
+
+### Whonix
+
+Tarayıcı seviyesindeki anonimlik, sisteminizdeki bir uygulamanın arkadan gerçek IP adresinizi sızdırmasıyla saniyeler içinde çöker. İşte Whonix, bu sızıntı ihtimalini mimari olarak imkansız kılan o yapıdır. Whonix, iki farklı sanal makineden (Gateway ve Workstation) oluşr. Siz işlerinizi Workstation üzerinde yaparsınız ama o makinenin internete dair hiçbir fikri yoktur dış dünyayı sadece bir iç ağdan ibaret görür. Tüm trafik, Gateway üzerinden geçmeye zorlanır. Bu ne anlama geliyor? Bilgisayarınıza en tehlikeli malware bile bulaşsa, sisteminizi root seviyesinde ele geçirse bile gerçek IP adresinizi asla öğrenemez. Çünkü o malware’in görebileceği tek şey Gateway’in ona sunduğu iç IP adresidir.
+
+**Stream Isolation** Whonix sadece IP saklamaz, aynı zamanda "Stream Isolation" dediğimiz o ince şıklığıda yapar. Tarayıcınız bir tor devresinden giderken, arka planda çalışan bir güncelleme veya başka bir araç tamamen farklı bir devre üzerinden dünyaya bağlanır. Bu, yazımın başında bahsettiğim o ağ korelasyonunu imkansız hale getirmez belki ama saldırganın işini kabusa çevirir.
+
+**Adli Bilişimcinin Çıkmazı** İşin en can alıcı noktasına, yani o sahadaki gerçek senaryoya dönelim. Adli bilişimci cihazı incelediğinde sadece luks şifreli bir diskle değil, aynı zamanda tertemiz bir ağ geçmişiyle karşılaşır. Çünkü Whonix, Workstation üzerinde hiçbir metadata bırakmamak üzerine tasarlanmıştır. Cihaz kapalı halde  ele geçirildiği için geriye sadece şifreli birer veri yığını kalmıştır. Adli bilişimci ağ kayıtlarına baktığında ise gördüğü tek şey, Tor ağının o anlamsız giriş düğümleridir. Ne bir hedef IP, ne bir domain, ne de bir kullanıcı davranışı... Anakart şifreli, disk şifreli, ağ ise tam bir kör düğüm.
+
+Bu sistemler size konfor vaat etmez, karşılığını sabırla ödediğiniz o mutlak anonimliği sunar.
+
+# Peki Ya Sen?
+
+Anonimliği sağlamak için tüm yazılımları, araç gereci ve sistemi kurdun, sen peki?\
+Psikolojik olarak ne durumdasın? Egon yüksekmi? Sevgiden beslenirmisin? Kaç kimliği aynı anda yönetebilirsin? Mutlumusun? Sabırlımısın? Motivasyonun ne? Yaşamaktan zevk alıyormusun, alıyorsan bu kadar uğraş niye? Bu disipline ayak uydurabilecek misin? Bunu alışkanlık, takıntı, obsesyon belki paranoya durumna getirmeyi göze aldınmı? 
+
+En büyük zafiyet insanın kendisidir, gerçekten birgün hiç patlamayacağını mı düşünüyormusun?
+
+**Bir sabah uyandığında, kurduğun bu muazzam sistemin içinde aslında kendini hapsettiğini fark edersen ne yapacaksın?** Kendi yarattığın sahte karakterler arasında gerçek seni kim hatırlayacak? Anonimlik bir özgürlük gibi görünür ama aslında çok ağır bir yalnızlıktır. Her saniye 'hata yaptım mı?' diye düşünmekten, yaşamın o kaotik ve güzel akışını kaçırıyor olacaksın.
+
+Belki de bizler, dış dünyadan o kadar korkuyoruz ki, bu aşılmaz opsec sistemlerini aslında kendimizi korumak için değil, kendimizden kaçmak için inşa ediyoruz. Ama kaçış yok. O disk şifresini girdiğiniz an, sadece sisteme değil, kendi hapishanenize de giriş yapıyorsunuz. Bu yazıyı buraya kadar teknik bir rehber gibi okumuş olabilirsiniz. Ama dürüst olayım bunları yazarken fark ettim ki, dünyanın en güvenli sistemini de kursam, içimdeki o karmaşayı ve onaylanma ihtiyacını izole edememişim. Belki de en büyük honeypot, kendi zihnimizdir.
+
+**Vesselam**
+
+https://www.youtube.com/watch?v=jwaWMYE-Dc0
