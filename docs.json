@@ -38,6 +38,7 @@
             "pages": [
               "Visec/DarkWeb/tor",
               "Visec/DarkWeb/safenet",
+              "Visec/DarkWeb/honeypot",
               "Visec/DarkWeb/torirc"
             ]
           },
