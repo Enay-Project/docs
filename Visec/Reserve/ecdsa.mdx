@@ -1,7 +1,6 @@
 ---
 title: "Threshold ECDSA Signature Forgery"
-description: "cbmpc
-"
+description: "cbmpc "
 ---
 
 Coinbase’in çok taraflı ECDSA (MPC ECDSA) uygulaması olan [**cb-mpc**](https://github.com/coinbase/cb-mpc) üzerinde yaptığım analiz sırasında, imza üretim aşamasında kritik bir tasarım zafiyeti tespit ettim. Bu zafiyet, saldırganın **hiçbir özel anahtara sahip olmadan** ve diğer MPC katılımcılarının iş birliğine ihtiyaç duymadan **geçerli görünen ECDSA imzaları oluşturmasına** izin veriyor.
@@ -216,5 +215,5 @@ Bu, ECDSA için **matematiksel olarak imkânsız olması gereken** bir durumu m�
 Bu sadece uygulama hatası değil, **doğrudan protokol seviyesinde bir kırılma**dır.
 
 <Warning>
-  Bu zafiyet bildirildi ve zafiyet kapatıldı, verilen bilgiler sadece bilgilendirme amaçlıdır hiçbir art niyet yoktur. Zafiyeti tekrarlamaya çalışmayınız.
+  Bu çalışma, proc ortamında sömürülebilir bir güvenlik açığı teşhisinden ziyade, yerel bir ortamda bellek manipülasyonu ve hata ayıklayıcı araçlarıyla sistem mantığının nasıl bypass edilebileceğini gösteren bir kavram kanıtıdır. Yerel erişim ve hata ayıklama yetkisi olan bir ortamda, dünyanın en güvenli kriptografik kütüphaneleri bile aynı yöntemle "yıkılabilir". Buradaki asıl maksat, uygulama kodundaki iç doğrulama katmanlarının teorik eksikliğine dikkat çekmektir.
 </Warning>
