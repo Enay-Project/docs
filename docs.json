@@ -41,6 +41,11 @@
               "Visec/DarkWeb/honeypot",
               "Visec/DarkWeb/torirc"
             ]
+          },          {
+            "group": "ReserveEng",
+            "pages": [
+              "Visec/Reserve/ecdsa"
+            ]
           },
           {
             "group": "Siber Güvenlik",
