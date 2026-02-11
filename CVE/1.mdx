@@ -4,11 +4,12 @@ description: "CWE-502"
 ---
 
 **Date:** 2025-10-04\
-**Record:** [https://www.cve.org/cverecord?id=CVE-2025-12059](https://www.cve.org/cverecord?id=CVE-2025-12059\\\\)\
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
 **Etki Kapsamı:**`Startupv3.29.6.4`\
 Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
+
+https://www.cve.org/cverecord?id=CVE-2025-12059
 
 Uygulama, JNLP dosyasında yer alan `DOCUMENT_URI` parametresini istemci sunucu akışında kullanıyor ve bu URI/uç nokta üzerinden dönen istek gövdesini HTTP metodu ne olursa olsun (HEAD dahil) okuyup `ObjectInputStream.readObject()` ile deserialize ediyor. Sonuç olarak saldırgan, kimlik doğrulaması olmadan bile **serialized** bir gövdeyi `HEAD` isteğiyle taşıyıp sunucu tarafında gadget zincirini tetikleyebiliyor ve RCE elde edebiliyor. Bu davranış, HTTP standardında HEAD yanıt gövdesinin olmamasıyla karıştırılabiliyor ancak **istek** gövdesi uygulama katmanında yanlış tasarımla okunuyorsa, HEAD de dahil olmak üzere metot agnostik bir akış ortaya çıkıyor ve deserialize zinciri aynı şekilde çalışıyor.
 
