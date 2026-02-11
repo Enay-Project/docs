@@ -4,7 +4,7 @@ description: "CWE-502"
 ---
 
 **Date:** 2025-10-04\
-**Record:** https://www.cve.org/cverecord?id=CVE-2025-12059\\ \
+**Record:** https://www.cve.org/cverecord?id=CVE-2025-12059\\\\ \
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
 **Etki Kapsamı:**`Startupv3.29.6.4`\
@@ -206,26 +206,6 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 
 - Sonradan eklenen **WAF**: Büyük/şüpheli gövde gönderiminde \*\*RST \*\*veya `405` döndürüyor; bu **semptomu gizler**, **kök nedeni kaldırmaz**.
 - **Class-path farklılıkları**: Bazı sürümlerde belirli gadget’lar bulunmayabilir, ancak alternatif zincirler genelde mevcuttur.
-
-### Mitigasyon
-
-\
-Mitigasyon sonrası **POST/PUT 405**, **büyük gövdede RST (WAF)** ve **HEAD/GET sadece JNLP döndürüyor** ve dolayısıyla exploit yolu uygulamada kapatılmış görünüyor. Güncel testler ile hali ile:
-
-```blade
-METHOD  | BODY         | C-TYPE                               | SONUÇ
-HEAD    | yok          | —                                    | 200 (jnlp headers)
-HEAD    | 5B txt       | application/x-java-serialized-object | 200
-HEAD    | 5B txt       | application/octet-stream             | 200
-HEAD    | 100B .ser    | application/x-java-serialized-object | 200
-HEAD    | >1000B .ser  | application/x-java-serialized-object | 405
-POST    | 100B .ser    | application/x-java-serialized-object | WAF 
-POST    | 400B .ser    | application/x-java-serialized-object | WAF
-POST    | full .ser    | application/x-java-serialized-object | WAF
-PUT     | 100/400/full | application/x-java-serialized-object | 405 
-```
-
-ancak **kök neden** kod tarafında kalıcı olarak kaldırılmadıysa risk mimaride hala var kabul edilmeli.
 
 ### Hashler
 
