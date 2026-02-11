@@ -4,18 +4,15 @@ description: "CWE-502"
 ---
 
 **Date:** 2025-10-04\
-**Reported to vendor:** reported, vendor not yet remediated\
+**Record:** https://www.cve.org/cverecord?id=CVE-2025-12059\
 **Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
 AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
-**CWE:** CWE-502\
 **Etki Kapsamı:**`Startupv3.29.6.4`\
 Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
 
 Uygulama, JNLP dosyasında yer alan `DOCUMENT_URI` parametresini istemci sunucu akışında kullanıyor ve bu URI/uç nokta üzerinden dönen istek gövdesini HTTP metodu ne olursa olsun (HEAD dahil) okuyup `ObjectInputStream.readObject()` ile deserialize ediyor. Sonuç olarak saldırgan, kimlik doğrulaması olmadan bile **serialized** bir gövdeyi `HEAD` isteğiyle taşıyıp sunucu tarafında gadget zincirini tetikleyebiliyor ve RCE elde edebiliyor. Bu davranış, HTTP standardında HEAD yanıt gövdesinin olmamasıyla karıştırılabiliyor ancak **istek** gövdesi uygulama katmanında yanlış tasarımla okunuyorsa, HEAD de dahil olmak üzere metot agnostik bir akış ortaya çıkıyor ve deserialize zinciri aynı şekilde çalışıyor.
 
 Zincirin pratik akışı şöyle gerçekleşiyor: İstemci tarafından sunulan JNLP, `DOCUMENT_URI`’yi uygulama başlatma parametresi olarak içeriyor; bu parametre sunucu tarafındaki web bileşenine aktarılıyor ve burada ilgili handler/servlet, isteğin gövdesini **metot kontrolü yapmadan** `request.getInputStream()` ile tüketiyor. Ardından bu akış bir servis katmanına devredilip `new ObjectInputStream(in).readObject()` çağrısına ulaşıyor. Deserialize sırasında sınıf yükleme ve `readObject()`giriş noktalarına bağlı bir **gadget zinciri** çalıştırılarak komut yürütme sağlanıyor. Bu nedenle saldırgan, `ysoserial` ile ürettiği bir `payload.ser` dosyasını `Content-Type: application/x-java-serialized-object` başlığıyla **HEAD** isteği gövdesine koyduğunda, uç nokta `POST`/`PUT` yerine `HEAD` ile çağrılsa bile, uygulamanın **metot-agnostik gövde okuması** yüzünden içerik deserialize edilip komut çalıştırılabiliyor. **Küçük** boyutta yapılan `HEAD` çağrıları `200 OK` döndürüp JNLP sunabiliyor, bu, uç noktanın HEAD’i işlediğini ve gövdeyi en azından kısmen tükettiğini gösteriyor.
-
-1. 
 
 Kök neden açısından problem iki başlıkta toplanıyor:
 
@@ -166,13 +163,11 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 
 ![Görsel 2025 11 05 195035620 Pn](/images/görsel_2025-11-05_195035620.png)
 
-Şu anda ilgili firma zafiyeti tamamen gidermediği için, güvenlik riski devam ettiği sürece ayrıntılı poc veya exploit kodu yayımlamıyorum.
-
 # Zaman Çizelgesi
 
 - **05.10.2025** – İlk bildirim
 - **22.10.2025** – CVE tahsisi
-- **22.10.2025 sonrası** – Vendor **WAF/endpoint davranışını** değiştiriyor (POST/PUT → 405; büyük gövdede RST; GET/HEAD 200 ile JNLP servis ediyor).
+- **11.02.2026- CVE Yayınlandı**
 
 # Saldırı yüzeyi
 
