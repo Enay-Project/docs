@@ -9,6 +9,20 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Ana Site",
+          "icon": "home",
+          "href": "https://visec.net.tr"
+        },
+        {
+          "anchor": "GitHub",
+          "icon": "github",
+          "href": "https://github.com/Enay-Project"
+        }
+      ]
+    },
     "tabs": [
       {
         "tab": "Anasayfa",
@@ -39,12 +53,13 @@
               "Visec/DarkWeb/tor",
               "Visec/DarkWeb/safenet",
               "Visec/DarkWeb/honeypot",
-              "Visec/DarkWeb/torirc"
+              "Visec/DarkWeb/torirc",
+              "Visec/DarkWeb/almanya"
             ]
-          },          {
+          },
+          {
             "group": "ReserveEng",
-            "pages": [
-            ]
+            "pages": []
           },
           {
             "group": "Siber Güvenlik",
@@ -101,21 +116,7 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Ana Site",
-          "href": "https://visec.net.tr",
-          "icon": "home"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/Enay-Project",
-          "icon": "github"
-        }
-      ]
-    }
+    ]
   },
   "navbar": {
     "links": [
