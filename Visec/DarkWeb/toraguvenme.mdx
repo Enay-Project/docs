@@ -39,7 +39,7 @@ Hollanda’da da bir benzer hikayedir. Çıkış operatörleri sık sık yasal u
 
 Kısaca bu iki ülkede exit node işletmek **yasal ve fiziksel risk** taşıyor. Polis “notice-and-takedown” istiyor, ISP’ler (örneğin O2/Telefónica) mahkeme kararıyla belirli relay’lere bağlanan müşterileri aylarca log’lamak zorunda kalıyor.
 
-### Timing / Correlation Attack
+## Timing / Correlation Attack
 
 En tehlikeli kısım bu. Alman yetkililerin kullandığı yöntemlerin en başında bu geliyor.
 
@@ -49,6 +49,27 @@ En tehlikeli kısım bu. Alman yetkililerin kullandığı yöntemlerin en başı
 4. Zamanlama, paket boyutu ve trafik paternlerini karşılaştırıyorlar.
 
 Eğer devrenin hem girişi hem çıkışı Almanya/Hollanda eksenliyse (ki olasılık yüksek), korelasyon yapmak çok daha kolay oluyor. Tor’un kendi dokümanları da uzun zamandır “eğer rakip giriş ve çıkış arasında korelasyon yapabiliyorsa seni deanonimize edebilir” diyor. Bu teori değil, pratikte kanıtlandı.
+
+Trafik, sabit boyutlu “cells” (eski versiyonlarda 512 byte, yeni olanlarda 514 byte) halinde akar. Cells şifrelenir ama boyutu değişmez. Paketler arasında rastgele gecikme eklenmez (çünkü latency’yi öldürür), ağır paddingde default olarak yok. 
+
+- Bir mesaj gönderdiğinizde belirli bir burst oluşur.
+- inter-arrival times, 10 saniyelik pencerelerdeki cell sayısı, upload/download, toplam hacim… hepsi circuit boyunca büyük ölçüde korunur.
+
+Bu paternler, şifreli olsa bile fingerprint bırakır, bu bilinen birşeydi ve Alman yetkililer de bunu pratikte uyguladı.
+
+### Almanların Yöntemi: “Bilinen Sinyal \+ Relay İzleme \+ ISP Logları” Kombinasyonu
+
+BKA’nın yaptığı şey, klasik end-to-end korelasyonun biraz modifiye edilmiş, hedef odaklı haliydi.
+
+1. **Uzun süreli relay monitoring**: Almanya’daki data center’larda çalışan yüzlerce Tor relay’ini (entry guard ve middle dahil) aylarca izlediler. Muhtemelen kendi işlettiği ya da yasal erişim sağladığı node’lar (istihbarat işin içindeydi). Her node’da gelen/giden trafiğin timestamplerini, cell sayılarını, burst paternlerini log’adılar. 
+2. **Known activity yaratma**: Şüpheliler eski Ricochet kullanıyordu bu P2P onion-to-onion mesajlaşma aracı, düşük trafikli ve pattern’leri net belli oluyordu. Yetkililer şüpheliyle chat üzerinden iletişim kurdu. Mesaj gönderme anlarını **tam olarak** biliyorlardı. Bu, “known signal” yarattı: “Tam saat 14:37’de şu boyutta bir burst olacak.”
+3. **Timing correlation ile entry guard tespiti**:
+   - Şüphelinin trafiği o anda belirli bir entry guard’tan girerken, o guard’da aynı timing ve hacimde bir client burst’ü gözlendi.
+   - Statistical matching yapıldı: Zaman serileri (time series) karşılaştırıldı. Örneğin, 1-5 saniyelik pencerelerde packet rate vektörleri, Pearson correlation katsayısı, cosine similarity ya da daha sofistike yöntemlerle (sliding window subset sum gibi) eşleştirildi.
+   - Guard’lar az sayıda client’a hizmet ettiği için (Tor guard selection’ı bandwidth ve stability’ye göre yapıyor), eşleşme nispeten kolaylaşıyordu. Circuit multiplexing olsa bile, low-traffic uygulamada (Ricochet gibi) noise azdı.
+4. **ISP’den IP yakalama**: Guard node’un IP’si biliniyor. Mahkeme emriyle Telefónica (ISP) o guard’a o dakikalarda bağlanan gerçek client IP’lerini verdi. Guard log’ları \+ ISP log’ları \+ timing match = şüphelinin gerçek IP’si. Sonra normal polisiye yöntemlerle kimlik tespit.
+
+Raporlara göre aynı soruşturmada **dört kez** başarılı oldular. Bu, tek seferlik bir şans değil; yıllarca sürdürülen, istatistiksel güvenilirliği yüksek bir operasyondu.
 
 ### Pratikte Kendi Gözlemlerim
 
