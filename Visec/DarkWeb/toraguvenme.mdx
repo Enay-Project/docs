@@ -50,7 +50,7 @@ En tehlikeli kısım bu. Alman yetkililerin kullandığı yöntemlerin en başı
 
 Eğer devrenin hem girişi hem çıkışı Almanya/Hollanda eksenliyse (ki olasılık yüksek), korelasyon yapmak çok daha kolay oluyor. Tor’un kendi dokümanları da uzun zamandır “eğer rakip giriş ve çıkış arasında korelasyon yapabiliyorsa seni deanonimize edebilir” diyor. Bu teori değil, pratikte kanıtlandı.
 
-Trafik, sabit boyutlu “cells” (eski versiyonlarda 512 byte, yeni olanlarda 514 byte) halinde akar. Cells şifrelenir ama boyutu değişmez. Paketler arasında rastgele gecikme eklenmez (çünkü latency’yi öldürür), ağır paddingde default olarak yok. 
+Trafik, sabit boyutlu “cells” (eski versiyonlarda 512 byte, yeni olanlarda 514 byte) halinde akar. Cells şifrelenir ama boyutu değişmez. Paketler arasında rastgele gecikme eklenmez (çünkü latency’yi öldürür), ağır paddingde default olarak yok.
 
 - Bir mesaj gönderdiğinizde belirli bir burst oluşur.
 - inter-arrival times, 10 saniyelik pencerelerdeki cell sayısı, upload/download, toplam hacim… hepsi circuit boyunca büyük ölçüde korunur.
@@ -61,7 +61,7 @@ Bu paternler, şifreli olsa bile fingerprint bırakır, bu bilinen birşeydi ve 
 
 BKA’nın yaptığı şey, klasik end-to-end korelasyonun biraz modifiye edilmiş, hedef odaklı haliydi.
 
-1. **Uzun süreli relay monitoring**: Almanya’daki data center’larda çalışan yüzlerce Tor relay’ini (entry guard ve middle dahil) aylarca izlediler. Muhtemelen kendi işlettiği ya da yasal erişim sağladığı node’lar (istihbarat işin içindeydi). Her node’da gelen/giden trafiğin timestamplerini, cell sayılarını, burst paternlerini log’adılar. 
+1. **Uzun süreli relay monitoring**: Almanya’daki data center’larda çalışan yüzlerce Tor relay’ini (entry guard ve middle dahil) aylarca izlediler. Muhtemelen kendi işlettiği ya da yasal erişim sağladığı node’lar (istihbarat işin içindeydi). Her node’da gelen/giden trafiğin timestamplerini, cell sayılarını, burst paternlerini log’adılar.
 2. **Known activity yaratma**: Şüpheliler eski Ricochet kullanıyordu bu P2P onion-to-onion mesajlaşma aracı, düşük trafikli ve pattern’leri net belli oluyordu. Yetkililer şüpheliyle chat üzerinden iletişim kurdu. Mesaj gönderme anlarını **tam olarak** biliyorlardı. Bu, “known signal” yarattı: “Tam saat 14:37’de şu boyutta bir burst olacak.”
 3. **Timing correlation ile entry guard tespiti**:
    - Şüphelinin trafiği o anda belirli bir entry guard’tan girerken, o guard’da aynı timing ve hacimde bir client burst’ü gözlendi.
@@ -77,7 +77,7 @@ Raporlara göre aynı soruşturmada **dört kez** başarılı oldular. Bu, tek s
 - Cloudflare, Google vs. “Tor exit from DE/NL” diye ekstra doğrulama istiyor.
 - Reklam ve coğrafi hedefleme bile bazen “Hollanda” gösteriyor.
 
-Bu yüzden torrc’ye şu satırları eklemeni öneririm
+Bu yüzden torrc’ye şu satırları eklemeni öneririm.
 
 ```text focus={1}
 ExcludeExitNodes {de},{nl}
