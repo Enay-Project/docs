@@ -2,7 +2,7 @@
 title: "Proxy + Whonix"
 ---
 
-Tor'dan önce bir proxy'ye bağlanmak sansürü aşmanıza yardımcı olur. Aynı zamanda yalnızca Tor'a bağımlı kalma riskini de azaltır. 
+Tor'dan önce bir proxy'ye bağlanmak sansürü aşmanıza yardımcı olur. Aynı zamanda yalnızca Tor'a bağımlı kalma riskini de azaltır.
 
 Bu rehberi uygulayabilmek için bağlanabileceğiniz bir sunucuya ihtiyacınız var. Bu sunucuyu kendiniz kurabilir veya güvendiğiniz bir arkadaşınızın sunucusunu kullanabilirsiniz. Alternatif olarak, ücretsiz, kamu yararına hizmet veren bir sunucu da tercih edilebilir. Ücretsiz genel sunucular kullanmak, trafiğinizin diğer birçok kişinin trafiğiyle karışmasını sağlama gibi ek bir avantaja sahiptir ancak yavaşlıkta cabasıdır.
 
@@ -85,6 +85,10 @@ sudo vi /etc/shadowsocks-libev/config.json
 }
 ```
 
+<Frame>
+  ![Görsel 2026 04 09 020050654](/images/görsel_2026-04-09_020050654.png)
+</Frame>
+
 İstemcide (client) belirttiğiniz parametreler, sunucu tarafında seçilen ayarlarla tam olarak eşleşmelidir.
 
 `/etc/shadowsocks-libev/config.json` dosyasını kaydedip kapatın.
@@ -117,6 +121,10 @@ ExecStart=/usr/bin/ss-local -c /etc/shadowsocks-libev/config.json
 WantedBy=multi-user.target
 ```
 
+<Frame>
+  ![Image](/images/image-3.png)
+</Frame>
+
 `/lib/systemd/system/shadowsocks-libev.service` dosyasını kaydedin.
 
 Değişikliklerin algılanması için systemd'yi yeniden yükleyin:
@@ -144,7 +152,11 @@ Terminal ekranını kapatabilirsiniz.
 
 ### **1.6. Anon Connection Wizard'ı Yeniden Yapılandırma**
 
-Whonix üzerindeki Tor, Gateway makinesinin `/usr/local/etc/torrc.d` dizininde saklanan yapılandırma dosyaları ile kontrol edilir. "Anon Connection Wizard"ı (Anonim Bağlantı Sihirbazı) tekrar çalıştırarak yeni torrc dosyalarının otomatik yazılmasını sağlayabiliriz. Bu sihirbazı Sistem (System) menüsü altında bulabilirsiniz.
+Whonix üzerindeki Tor, Gateway makinesinin `/usr/local/etc/torrc.d` dizininde saklanan yapılandırma dosyaları ile kontrol edilir. "Anon Connection Wizard"ı (Anonim Bağlantı Sihirbazı) tekrar çalıştırarak yeni torrc dosyalarının otomatik yazılmasını sağlayabiliriz. Bu sihirbazı system menüsü altında bulabilirsiniz.
+
+<Frame>
+  ![Image](/images/image-4.png)
+</Frame>
 
 1. **Configure** (Yapılandır) seçeneğini seçin.
 2. Tercihinize bağlı olarak köprüler (bridges) için olan kutuyu işaretleyin veya boş bırakın.
@@ -161,6 +173,6 @@ Gateway sanal makinesini simge durumuna küçültün (minimize edin).
 
 ### **1.7. İş İstasyonunu (Workstation) Kontrol Etme**
 
-Workstation (İş İstasyonu) sanal makinesine geçin. Whonix Tor Browser'ı açın. Uçtan uca bağlantınızın düzgün çalışıp çalışmadığını test etmek için [https://check.torproject.org](https://check.torproject.org) 
+Workstation (İş İstasyonu) sanal makinesine geçin. Whonix Tor Browser'ı açın. Uçtan uca bağlantınızın düzgün çalışıp çalışmadığını test etmek için [https://check.torproject.org](https://check.torproject.org)
 
 ---
