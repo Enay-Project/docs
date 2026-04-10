@@ -50,13 +50,13 @@
           {
             "group": "Opsec",
             "pages": [
-              "Visec/DarkWeb/tor",
-              "Visec/DarkWeb/safenet",
-              "Visec/DarkWeb/honeypot",
-              "Visec/DarkWeb/torirc",
-              "Visec/DarkWeb/toraguvenme",
-              "Visec/DarkWeb/tor-1",
-              "Visec/DarkWeb/freeint"
+              "Visec/opsec/tor",
+              "Visec/opsec/safenet",
+              "Visec/opsec/honeypot",
+              "Visec/opsec/torirc",
+              "Visec/opsec/toraguvenme",
+              "Visec/opsec/tor-1",
+              "Visec/opsec/freeint"
             ]
           },
           {
