@@ -57,6 +57,9 @@ Gecikme sorunu yaşayabilirsiniz, bunu bir deneyin [tıkla](https://mosh.org/). 
   Bu bypass heryerde çalışmaz! Orta ve Üst düzey kurumların halka açık wifi ağları;
 
   - DNS force edilmiş
-  - UDP 53 inspect
+  - UDP 53 inspect 
+  - DNS 
     gibi yöntemlerle korunmaktadır. (umarım)
 </Tip>
+
+Büyük sistemlerde (havalimanı, dev oteller vb.) binlerce kişi aynı anda bağlanır. Ağ yöneticileri bazen **UDP 53 (DNS)** trafiğine çok sıkı filtre (DPI) koymazlar. Çünkü çok sıkı bir kontrol, DNS sorgularını yavaşlatabilir ve bu da tüm kullanıcıların "internet çok yavaş/çalışmıyor" diye şikayet etmesine neden olur. "Çalışsın da, güvenliği sonra hallederiz" mantığı maalesef buralarda çok yaygın. Havaalanı gibi hergün binlerce kişinin bağlandığı ağ trafiğinin zaten çok kalabalık olduğu bir yerde her bir paket üzerinde DPI yapmak devasa bir işlemci gücü gerektirir. 
