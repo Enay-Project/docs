@@ -49,7 +49,13 @@ Iodine sunucusuna bağlanabilir ve aynı sunucudaki ssh e erişebilirsiniz bu su
   ![Image](/images/image-9.png)
 </Frame>
 
-Gecikme sorunu yaşayabilirsiniz, bunu bir deneyin [tıkla](https://mosh.org/). Bir adım daha ileri gidip sunucuya bir vpn veya proxy kurabilirsiniz. Böylece tüm trafiğinizi Iodine üzerinden bu proxye yönlendirebilirsiniz. Ya da ssh -D (dinamik tünel) seçeneğini kullanarak klasik bir SOCKS5 proxy'si oluşturabilirsiniz. Iodine yavaş olabileceği ve bazı sınırlamaları olduğu için, VPN/proxy yolunu seçerseniz HTTP proxy veya SOCKS seçeneğini tercih etmenizi öneririm.
+Lodine burada devreye giriyor. Normalde DNS sadece domain çözmek için kullanılır, ama bu araç dns sorgularının içine veri gömerek bir iletişim kanalı oluşturur. Yani attığın dns sorguları aslında sadece “domain çöz” demiyor, aynı zamanda veri taşıyor. Sunucu tarafı da bu sorguları okuyup decode ediyor ve sana yine dns cevapları üzerinden veri geri gönderiyor.
+
+Soldaki çıktıda tünelin kurulduğunu gördün. UDP üzerinden dns sorguları atılıyor, MTU ayarlanıyor, bağlantı optimize ediliyor ve en sonunda “transmitting data” aşamasına geçiliyor. Bu, artık DNS üzerinden gerçek veri akışı başladığı anlamına geliyor.
+
+Bu bağlantı kurulduktan sonra sistem sana lokal bir IP veriyor (burada 10.6.0.x). Bu ip aslında gerçek bir ağ değil, tamamen DNS tüneli üzerinden oluşturulmuş sanal bir interface. Yani teknik olarak captive portal’ı hiç geçmemiş olsan bile, DNS üzerinden dışarıda bir sunucuya bağlanmış oluyorsun.
+
+Bu yöntemle gecikme sorunu yaşayabilirsiniz, bunu bir deneyin [tıkla](https://mosh.org/). Bir adım daha ileri gidip sunucuya bir vpn veya proxy kurabilirsiniz. Böylece tüm trafiğinizi Iodine üzerinden bu proxye yönlendirebilirsiniz. Ya da ssh -D (dinamik tünel) seçeneğini kullanarak klasik bir SOCKS5 proxy'si oluşturabilirsiniz. Iodine yavaş olabileceği ve bazı sınırlamaları olduğu için, VPN/proxy yolunu seçerseniz HTTP proxy veya SOCKS seçeneğini tercih etmenizi öneririm.
 
 <Danger>
   Bu paylaşım, ilgili firma bildirildikten nerdeyse 8 ay sonra yapılmıştır. Bu paylaşım, etik siber güvenlik ilkeleri ile güvenlik araştırmacıları, kullanıcılar ve ağ sahiplerini bilgilendirmek amaçlı yapılmıştır. **Herhangibir bir artniyet veya yönlendirme yoktur!**
