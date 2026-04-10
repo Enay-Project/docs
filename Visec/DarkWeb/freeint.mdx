@@ -70,3 +70,11 @@ Bu yöntemle gecikme sorunu yaşayabilirsiniz, bunu bir deneyin [tıkla](https:/
 </Tip>
 
 Büyük sistemlerde (havalimanı, dev oteller vb.) binlerce kişi aynı anda bağlanır. Ağ yöneticileri bazen **UDP 53 (DNS)** trafiğine çok sıkı filtre (DPI) koymazlar. Çünkü çok sıkı bir kontrol, DNS sorgularını yavaşlatabilir ve bu da tüm kullanıcıların "internet çok yavaş/çalışmıyor" diye şikayet etmesine neden olur. "Çalışsın da, güvenliği sonra hallederiz" mantığı maalesef buralarda çok yaygın. Havaalanı gibi hergün binlerce kişinin bağlandığı ağ trafiğinin zaten çok kalabalık olduğu bir yerde her bir paket üzerinde DPI yapmak devasa bir işlemci gücü gerektirir.
+
+## Riskler ve Sorumluluk
+
+Burada anlatılan yöntemler tamamen teknik bir bakış açısıyla paylaşılmıştır. Ancak pratikte bu tarz teknikleri izinsiz şekilde kullanmak ciddi sorunlara yol açabilir.
+
+Türkiye’de de 5651 kapsamında internet erişim kayıtları tutulduğu için, bu tür denemeler hukuki olarak sorun yaratabilir. 
+
+Kurduğunuz tünel düzgün yapılandırılmazsa, kendi trafiğinizi farkında olmadan açığa çıkarabilirsiniz. Özellikle ek bir şifreleme katmanı yoksa, verileriniz izlenebilir hale gelebilir.
