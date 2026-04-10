@@ -1,0 +1,50 @@
+---
+title: "Halka açık "
+---
+
+<Tip>
+  Güvenli Wi-Fi sadece şifrelerden ibaret değildir. Her protokolü, her bağlantı noktasını ve her türlü potansiyel güvenlik açığını anlamakla ilgilidir.
+</Tip>
+
+Türkiye'de kaç tane wifi erişim noktasının kimlik veya telefon numarası istediğini fark ettiniz mi? Türk İnternet Kanunu (**5651 sayılı Kanun**), her kamuya açık wifi noktasını (havaalanları, kafeler, oteller) zorunlu bir gözetim noktası haline getirir. Yasa, bu yerlerin internet faaliyetlerinizin ayrıntılı kayıtlarını, kimliğinizle bağlantılı olarak iki yıla kadar saklamasını gerektirir. Neyse ki, genellikle kişisel bilgileri vermeden bu zorunlu giriş sayfalarını atlatmanın bir yolu vardır ve **bu da DNS'dir.**
+
+<Frame>
+  ![Image](/images/image-7.png)
+</Frame>
+
+İşletmeler ve belediyeler, yukarıdaki gibi, tek çözümü **tcpdump** komutunu çalıştırıp çıktıyı merkezi bir depoda kaydetmek olan bir sistemi kullanıyor. Vay canına, acaba saldırıya uğrasalar ne olur… Bazen bu çözümler, **cloudflare** gibi diğer dns sunucularına giden trafiğe izin veriyor. Bu örnekte ise, yalnızca DHCP aracılığıyla dağıtılan varsayılan DNS sunucusuna giden trafiğe izin verilmişti.
+
+## DNS Bridge Sunucusu kurun (Iodine)
+
+Önce [Iodine'ı ](https://code.kryo.se/iodine/)kurun ve ona bağlanmak için bilgilerini kaydedin. Linux türevi bir sistem kullanıyorsanız, adımlar şu şekilde olabilir:
+
+```text
+#!/bin/sh
+dnf group install 'Development Tools' -y
+dnf install net-tools -y
+git clone https://github.com/yarrick/iodine.git
+cd iodine
+git checkout tags/v0.8.0
+make -j
+make install
+mkdir -p /usr/local/lib/systemd/system
+install doc/iodine-server.service /usr/local/lib/systemd/system/iodine-server.service
+sed -i 's/syslog/journal/' /usr/local/lib/systemd/system/iodine-server.service
+sed -i 's/\/bin\//\/sbin\//' /usr/local/lib/systemd/system/iodine-server.service
+install doc/iodine-server.socket /usr/local/lib/systemd/system/iodine-server.socket
+systemctl daemon-reload
+cat > /etc/sysconfig/iodine-server << EOF
+OPTIONS='-P password 10.6.0.1 your.domain.tld'
+EOF
+systemctl enable --now iodine-server.socket
+```
+
+## Bir Wifi Bulun ve Ücretsiz Bağlanın
+
+Iodine sunucusuna bağlanabilir ve aynı sunucudaki ssh e erişebilirsiniz bu sunucuda sınırsız internet mevcuttur. Düşük hızlar nedeniyle pek kullanışlı olmasa da, bir şey aramak veya hızlıca bir mesaj göndermek zorunda olduğunuz acil durumlarda size yardımcı olabilir.
+
+<Frame>
+  ![Image](/images/image-9.png)
+</Frame>
+
+Gecikme sorunu yaşayabilirsiniz, bunu bir deneyin [tıkla](https://mosh.org/). Bir adım daha ileri gidip sunucuya bir vpn veya proxy kurabilirsiniz. Böylece tüm trafiğinizi Iodine üzerinden bu proxye yönlendirebilirsiniz. Ya da ssh -D (dinamik tünel) seçeneğini kullanarak klasik bir SOCKS5 proxy'si oluşturabilirsiniz. Iodine yavaş olabileceği ve bazı sınırlamaları olduğu için, VPN/proxy yolunu seçerseniz HTTP proxy veya SOCKS seçeneğini tercih etmenizi öneririm.

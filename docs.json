@@ -55,7 +55,8 @@
               "Visec/DarkWeb/honeypot",
               "Visec/DarkWeb/torirc",
               "Visec/DarkWeb/toraguvenme",
-              "Visec/DarkWeb/tor-1"
+              "Visec/DarkWeb/tor-1",
+              "Visec/DarkWeb/freeint"
             ]
           },
           {
