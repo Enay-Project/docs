@@ -1,25 +1,22 @@
 ---
 title: "Güvenli İnternet"
-description: "Anonimlik öldü, onu biz öldürdük."
 ---
 
 Güvenli internet denince aklıma bir siteye uğradığım zaman en temel olarak o sitenin bana zarar verememesi gelir. İnternet kavramı çok detaylı ve yoğun bir konu aslında, internet sadece web sitelerinden ibaret değil, bunun en önemli örneği telefonlarınızda ki uygulamalar, ip kameralarınız, tek tuşla evi yönetebilen akıllı ev sistemleri vesaire. Hepsinde her geçen gün bir zafiyet bulunuyor ve o zafiyeti önlemek için bir yama veya ek sertifikalar kullanılıyor. Bugün anlatacağım konu işin zafiyet kısmından çok anonimlik üzerine olacak.
 
-Gündelik kullanıdığın internette, herhangibi bir ek güvenlik önlemi kullanmadan düz kendi ip, bilgisayarın ve google tarayıcın ile **hiç izlenmediğinimi zannediyorsun**? Whatsappta arkadaşına "Kanka spora yazıldım protein tozu alıcam" dediğin zaman karşına protein tozu reklamları çıkmıyormu? En basitinden googleye sırf merak edip ekran kartı aratınca karşına ekran kartı reklamları çıkmıyormu? **İzleniyorsun** evet ve bunu legal olarak engellemenin bir yolu yok **sistemi ele geçirdiler**, tekelleştiler ve bunu göstermemek için kendilerine yapay rakip çıkartıp rakibin çalışan maaşlarını bile kendi ceplerinden ödüyorlar [bknz](https://blog.ssuiteoffice.com/articles/general/did-usaid-turn-firefox-into-a-surveillance-machine.htm)<Tooltip tip="">.</Tooltip>
+Gündelik kullanıdığın internette, herhangibi bir ek güvenlik önlemi kullanmadan düz kendi ip, bilgisayarın ve google tarayıcın ile **hiç izlenmediğinimi zannediyorsun**? Whatsappta arkadaşına "Kanka spora yazıldım protein tozu alıcam" dediğin zaman karşına protein tozu reklamları çıkmıyormu? En basitinden googleye sırf merak edip ekran kartı aratınca karşına ekran kartı reklamları çıkmıyormu? 
 
 # Güvenli iletişimi Nasıl Sağlarım
 
 Güvenli iletişim dediğim şey aslında server side odaklı iletişim sistemlerine alternatifler sunmak olacak.\
-Whatsapp, instagram gibi uygulamalar sence senin mesajlarını koruyabiliyormu? Koruma değil senin bildiğin verilerini satıyor.
+Whatsapp, instagram gibi uygulamalar sence senin mesajlarını koruyabiliyormu? 
 
 ## Client Server
 
 ![Ekrangörüntüsü2025 08 26014731 Pn](/images/Ekrangörüntüsü2025-08-26014731.png)
 
 Yukarıdaki görseldeki gibi, karşı tarafa attığın mesaj doğrudan karşıya gitmiyor, önce sunucuya gidip sonrasında karşıya geçiyor. Aklına gelebilecek tüm mesajlaşma uygulamaları bu sistemi kullanıyor. \
-Alacağın ve göndereceğin mesaj sunucuya gider, sonrasında senin veya karşı tarafın ip sine düşer, biz buna client server tabanlı iletişim diyoruz. Bu iletişim türünde mesajların anonim değildir çünkü tüm mesajların sunucu ile yani örneğin whatsapp kullanıyorsan metaya gider, metada bunu reklam şirketlerine satar google ads gibi. Senden para kazanamıyorsa senin verinden kazanır olay bu.\
-Bu altyapıyı kullanan şirketlerin absürt bir vaadi var "Mesajlar şifrelidir güvenliğinizi garanti ediyoruz", :DDD, mesajlı mesaj dediği şey 256hashı gibi düşün, evet dışardan çözmesi imkansız gibidir ama içeride o hashın çözüm algoritması kimdeyse top ondadır tüm mesajları o hash ile çözer.\
-Anlayacağın "Mesajlar şifrelidir" denilen şey "sana ve senin gibilere şifreli bana değil" demektir.
+Alacağın ve göndereceğin mesaj sunucuya gider, sonrasında senin veya karşı tarafın ip sine düşer, biz buna client server tabanlı iletişim diyoruz. Bu iletişim türünde mesajların anonim değildir çünkü tüm mesajların sunucu ile yani örneğin whatsapp kullanıyorsan metaya gider, metada bunu reklam şirketlerine satar google ads gibi. Senden para kazanamıyorsa senin verinden kazanır olay bu.
 
 ## P2P
 
@@ -145,13 +142,13 @@ Aşağıda göreceğiniz gibi, gerçekleştirmek istediğiniz sohbet türlerine 
 
 Aşağıdaki tablo 4 farklı sohbet türünü tanımlar. Bunlar kendilerine özgü özelliklerine göre ayrılmıştır ve her kategori için kısa bir açıklama, teknik ayrıntılar ve bazı artılar/eksiler verilmiştir.
 
-|                                      | **Public Chats (Herkese Açık)**                                                 | **Private Chats** **(Özel)**                                                                                                                                                                               | **Anonymous Chats (Anonim)**                                                                                                                            | **Deniable Chats (İnkâr Edilebilir)**                                                                                                                                              |
-| ------------------------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Açıklama**                         | Herkes tarafından görülebilen, herkese açık ortamda gerçekleşen konuşma         | İçeriği yalnızca katılımcılar tarafından bilinen konuşma                                                                                                                                                   | Katılımcıların bazı/hiçbirinin gerçek kimliklerinin bilinmediği konuşma                                                                                 | Gerçekleştiği kanıtlanamayan konuşma                                                                                                                                               |
-| **Örnek**                            | spor stadyumunda konuşuyor                                                      | Enay ve Meral iş yerinde bir toplantı odasında konuşuyor                                                                                                                                                   | Enay, trençkotlu gizemli biriyle konuşuyor                                                                                                              | Enay, Meral ile konuşuyor ama konuşmaya dair hiçbir kayıt veya kanıt yok                                                                                                           |
-| **Teknik Gereksinimler (Çevrimiçi)** | - Yok (söylediğin her şey herkese açık bilgi)                                   | - FOSS Yazılım<br />- E2EE (uçtan uca şifreleme) gerekli<br />- Sohbet sunucusunu kendin barındırabilmelisin                                                                                               | - FOSS Yazılım<br />- E2EE gerekli<br />- Kayıt olurken telefon numarası, kullanıcı kimliği ve IP adresi bağlantısı olmamalı ( üzerinden)               | - FOSS Yazılım<br />- E2EE gerekli<br />- Kayıt olurken telefon numarası, kullanıcı kimliği ve IP adresi bağlantısı olmamalı (Tor üzerinden)<br />- Kendiliğinden silinen mesajlar |
-| **Artılar**                          | - En kolay uygulanabilir<br />- Kısıtlama yok<br />- Her ortamda kullanılabilir | - Sohbetin içeriği sadece katılımcılar tarafından görülebilir<br />- Birçok uygulama artık E2EE destekli                                                                                                   | - Her sohbet için farklı anonim kimlikler kullanılabilir<br />- Tartışmalı konular için uygundur<br />- Anonimlik herkese açık sohbetlerde de mümkündür | - Kayıt dışı<br />- Konuşma geçmişi yok<br />- Hassas konular için uygundur                                                                                                        |
-| **Eksiler**                          | - Söylenen her şey gerçek kimliğinle ilişkilendirilebilir                       | - Çok az sohbet uygulaması hem istemci hem sunucu tarafında FOSS<br />- Katılımcıların kimliği bilinir<br />- Sohbetin gerçekleştiği bilinebilir<br />- Sohbet kalıplarından davranış modeli çıkarılabilir | - Gerçekten anonim kayıt imkânı sunan uygulama çok az<br />- Anonim tarafın söylediklerinden kimliği ortaya çıkabilir                                   | - Süre sınırı dolduktan sonra sohbet geçmişi görülemez                                                                                                                             |
+|  | **Public Chats (Herkese Açık)** | **Private Chats(Özel)** | **Anonymous Chats (Anonim)** | **Deniable Chats (İnkâr Edilebilir)** |
+| --- | --- | --- | --- | --- |
+| **Açıklama** | Herkes tarafından görülebilen, herkese açık ortamda gerçekleşen konuşma | İçeriği yalnızca katılımcılar tarafından bilinen konuşma | Katılımcıların bazı/hiçbirinin gerçek kimliklerinin bilinmediği konuşma | Gerçekleştiği kanıtlanamayan konuşma |
+| **Örnek** | spor stadyumunda konuşuyor | Enay ve Meral iş yerinde bir toplantı odasında konuşuyor | Enay, trençkotlu gizemli biriyle konuşuyor | Enay, Meral ile konuşuyor ama konuşmaya dair hiçbir kayıt veya kanıt yok |
+| **Teknik Gereksinimler (Çevrimiçi)** | - Yok (söylediğin her şey herkese açık bilgi) | - FOSS Yazılım<br />- E2EE (uçtan uca şifreleme) gerekli<br />- Sohbet sunucusunu kendin barındırabilmelisin | - FOSS Yazılım<br />- E2EE gerekli<br />- Kayıt olurken telefon numarası, kullanıcı kimliği ve IP adresi bağlantısı olmamalı ( üzerinden) | - FOSS Yazılım<br />- E2EE gerekli<br />- Kayıt olurken telefon numarası, kullanıcı kimliği ve IP adresi bağlantısı olmamalı (Tor üzerinden)<br />- Kendiliğinden silinen mesajlar |
+| **Artılar** | - En kolay uygulanabilir<br />- Kısıtlama yok<br />- Her ortamda kullanılabilir | - Sohbetin içeriği sadece katılımcılar tarafından görülebilir<br />- Birçok uygulama artık E2EE destekli | - Her sohbet için farklı anonim kimlikler kullanılabilir<br />- Tartışmalı konular için uygundur<br />- Anonimlik herkese açık sohbetlerde de mümkündür | - Kayıt dışı<br />- Konuşma geçmişi yok<br />- Hassas konular için uygundur |
+| **Eksiler** | - Söylenen her şey gerçek kimliğinle ilişkilendirilebilir | - Çok az sohbet uygulaması hem istemci hem sunucu tarafında FOSS<br />- Katılımcıların kimliği bilinir<br />- Sohbetin gerçekleştiği bilinebilir<br />- Sohbet kalıplarından davranış modeli çıkarılabilir | - Gerçekten anonim kayıt imkânı sunan uygulama çok az<br />- Anonim tarafın söylediklerinden kimliği ortaya çıkabilir | - Süre sınırı dolduktan sonra sohbet geçmişi görülemez |
 
 Tıpkı birçok şeyde olduğu gibi, bu sohbet türleri de daha kullanışlı ile daha güvenli arasında bir spektrumda yer alır.
 
@@ -227,19 +224,17 @@ Monero’da ise bu bilgi **şifrelenmiştir**. Yani dışarıdan bakan biri:
 - Ne kadar gönderildiğini,
 - Hangi adresten çıktığını\
   asla göremez.
-
   <img
     src="/images/görsel_2025-10-21_200655679.png"
     alt="Görsel 2025 10 21 200655679 Pn"
     style={{ width:"82%" }}
   />
-
   \
   \
   NOKYC servisler\
   VDS - [cockbox.org](http://cockbox.org) // Bunun mail hizmeti güzel ama kapattı sanırım bi kontrol edersiniz, vincent kralın sitesi.\
-  coin - https://retoswap.com // Bu çok sağlam bi hizmet. bi göz at.\
-  coin exchanger - https://exchanger.infinity.taxi // Sorunsuz\
-  chat - https://simplex.chat // Bunu anlatmıştım - [TIKLA](https://ofsec.visec.net.tr/Visec/DarkWeb/safenet#anonymous-chat-örneği)\
-  vpn - https://mullvad.net // https://xeovo.com // ikiside iyidir fiyatlarda benzer.\
-  pazar- https://xmrbazaar.com // Birçok alanda birçok hizmet alabilirsin monero ile.
+  coin - [https://retoswap.com](https://retoswap.com) // Bu çok sağlam bi hizmet. bi göz at.\
+  coin exchanger - [https://exchanger.infinity.taxi](https://exchanger.infinity.taxi) // Sorunsuz\
+  chat - [https://simplex.chat](https://simplex.chat) // Bunu anlatmıştım - [TIKLA](https://ofsec.visec.net.tr/Visec/DarkWeb/safenet#anonymous-chat-örneği)\
+  vpn - [https://mullvad.net](https://mullvad.net) // [https://xeovo.com](https://xeovo.com) // ikiside iyidir fiyatlarda benzer.\
+  pazar- [https://xmrbazaar.com](https://xmrbazaar.com) // Birçok alanda birçok hizmet alabilirsin monero ile.

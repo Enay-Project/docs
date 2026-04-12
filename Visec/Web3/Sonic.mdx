@@ -1,15 +1,15 @@
 ---
-title: "150.000 $"
+title: "170.000 $"
 description: ":s "
 ---
 
-Ufak uyarı: Göstermiş olduğum örnek origin altyapısını kullanmakta, açığı bildirdim ve kapattılar ancak siz genede o kapıyı çok zorlamayın :)))
+Ufak uyarı: Göstermiş olduğum örnek origin altyapısını kullanmakta.
 
 Öncelikle hedefimiz bu
 
 ![Ekrangörüntüsü2025 08 17013651 Pn](/images/Ekrangörüntüsü2025-08-17013651.png)
 
-170k dolar değerinde wrapped coin bulunuyor, sonic altyapısını kullanan bu tokeni bende ilk defa zafiyet ararken buldum :D
+170k dolar değerinde wrapped coin bulunuyor, sonic altyapısını kullanan bu tokeni bende ilk defa zafiyet ararken buldum.
 
 Buranın içinde kod analizine girdiğimde bir açık yok ancak yönetici aktiviteleri için yönlendirme yaptığı adres çok sıkıntılı, kendi içinde tüm aktivitelerin yöneticisi olarak Governor rolü belirlenmiş ama governor rolüne atanan bir kimse yok yani isteyen ilk kişi kendisini yönetici yapabiliyordu
 
@@ -18,7 +18,7 @@ Buranın içinde kod analizine girdiğimde bir açık yok ancak yönetici aktivi
 - Bu kontratın Governor’ı `0x31a91336414d3b955e494e7d485a6b06b55fc8fb` adresindeki **TimelockController** kontratıydı.
 - Orada `AccessControl` ile yönetilen `EXECUTOR` ve `PROPOSER` rolleri vardı, biz de role sahip olarak yönetimi ele geçirip kendimize Governor rolünü verdik.
 
-## **ZURNANIN KOPTUĞU YER**
+## **Anlatım**
 
 elimizdeki bilgiler aşşağıdaki gibi
 
@@ -28,9 +28,9 @@ elimizdeki bilgiler aşşağıdaki gibi
 
 #### **1- Rol Hashleri**
 
-- cast keccak "PROPOSER_ROLE" # =\> PROPOSER_ROLE hash
-- cast keccak "EXECUTOR_ROLE" # =\> EXECUTOR_ROLE hash
-- cast keccak "TIMELOCK_ADMIN_ROLE" # =\> TIMELOCK_ADMIN_ROLE hash
+- cast keccak "PROPOSER\_ROLE" # =\> PROPOSER\_ROLE hash
+- cast keccak "EXECUTOR\_ROLE" # =\> EXECUTOR\_ROLE hash
+- cast keccak "TIMELOCK\_ADMIN\_ROLE" # =\> TIMELOCK\_ADMIN\_ROLE hash
 
 #### **2- Mevcut konfigürasyonu okumak**
 
@@ -56,8 +56,8 @@ Eğer `EXECUTOR` **0x000…000** ise: “herkes execute edebilir” anlamına ge
 
 Hedef batch (aynı anda çağrılacak fonksiyonlar):
 
-1. **Timelock.grantRole(PROPOSER_ROLE, biz)** → ileriye dönük planlama serbestisi
-2. **Timelock.grantRole(EXECUTOR_ROLE, 0x000…000 veya biz)** → herkes/biz execute edebilelim
+1. **Timelock.grantRole(PROPOSER\_ROLE, biz)** → ileriye dönük planlama serbestisi
+2. **Timelock.grantRole(EXECUTOR\_ROLE, 0x000…000 veya biz)** → herkes/biz execute edebilelim
 3. **VaultCore.transferGovernance(attacker)** _veya_ VaultCore tarafındaki “governor set” türevi fonksiyon (sende VaultCore’un ABI’sine göre değişebilir)
 
 Bazı VaultCore’larda iki adım vardır: `transferGovernance(newGov)` → sonra `claimGovernance()` (biz çağırırız).
@@ -114,7 +114,7 @@ Tüm bu adımlardan sonra Governance rolünü ele geçirmiş oldum yani 170k dol
 
 ## **Uğraşmak istemiyom**
 
-https://remix.ethereum.org/ kendi metamask hesabınla giriş yap, 3 4 dolar birşey attım içine denemek için, burdada aynı adresi yokladığımda bu adrese hiçbir allahın kulu konmamıştı, yani gene gene gene istediğim adrese istediğim şekilde tokeni yollayabiliyodum.
+[https://remix.ethereum.org/](https://remix.ethereum.org/) kendi metamask hesabınla giriş yap, 3 4 dolar birşey attım içine denemek için, burdada aynı adresi yokladığımda bu adrese hiçbir allahın kulu konmamıştı, yani gene gene gene istediğim adrese istediğim şekilde tokeni yollayabiliyodum.
 
 <img
   src="/images/image(2).png"
@@ -127,7 +127,7 @@ aşşağıda vericeğim kodları tek tek contract kısmına girerekte claim yapa
 
 ![Image(3 Avi](/images/image\(3.avif)
 
-Okuduğun için teşekkürler, arap çorbası oldu ama teknik bilen adam anlar abi, hayırlı günler dilerim. aşşağıya kodları bıraktım uğraşmak istemeyenler baksın, öptüm.
+Okuduğunuz için teşekkürler. Aşağıya exploit kodlarını bıraktım. Bunları incelersiniz bi.
 
 VAULTCORE.SOL
 

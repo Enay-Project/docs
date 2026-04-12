@@ -7,7 +7,8 @@ Selam, Enay ben. Yazıma başlarken bunun sadece kişisel gözlemlerim olduğu v
 
 Honeypot nedir sorusunu sormadan önce sizin zaten bunu bildiğinizi varsayıyorum, bilmiyorsanız google amcadan ufak bir bilgilendirme yapayım "Bal küpleri, bilgi sistemlerine yetkisiz erişim sağlamaya çalışan saldırganlar veya kullanıcılar hakkında istihbarat toplamak amacıyla oluşturulan tuzak sistemlerdir. Bu sistemler, meşru ağ hizmetlerini taklit ederek saldırganların ilgisini çeker ve faaliyetlerini ayrıntılı biçimde kaydeder."
 
-Honeypotlar ile günlük hayatta sıkça karşılaşıyoruz, çoğunu övüyoruz ve kullanıyoruz belki.
+Honeypotlar ile günlük hayatta sıkça karşılaşıyoruz, çoğunu övüyoruz ve kullanıyoruz belki.\
+Yazımın genel akışı "Honetpotlar" değil ama gizlilik garantisi sunup o gizliliği hem teknik hemde politika beyanları ile bozanlar olacak.
 
 ## BRAVE
 
@@ -81,14 +82,14 @@ Anonimlik, ancak **neye karşı savunma yaptığını bildiğinde** başlar.
 
 Mesela aşşağıda verdiğim tablo gibi çıkarımlarda bulunabilirsin.
 
-| Tehdit Aktörü             | Amaç                             | Teknik Yetkinlik | Tipik Yöntemler                   | Basit Önlem Yeterli mi? |
-| :------------------------ | :------------------------------- | :--------------- | :-------------------------------- | :---------------------- |
-| Sıradan Kullanıcı         | Kim olduğunu öğrenmek            | Düşük            | IP bakma, link gönderme           | Evet                    |
-| Platform / Şirket         | Davranış analizi, profil çıkarma | Orta             | Metadata, zamanlama, fingerprint  | Hayır                   |
-| Reklam ve Veri Brokerları | Kimlik eşleştirme                | Orta             | Cross-site tracking, korelasyon   | Hayır                   |
-| OSINT Araştırmacısı       | Kimlik çözümleme                 | Orta–Yüksek      | Sosyal grafik, zamanlama          | Çoğu zaman hayır        |
-| Devlet veya Kolluk        | Kimlik tespiti                   | Yüksek           | ISP kayıtları, trafik korelasyonu | Hayır                   |
-| İstihbarat Seviyesi       | Sürekli izleme                   | Çok Yüksek       | Network-level korelasyon          | Pratikte hayır          |
+| Tehdit Aktörü | Amaç | Teknik Yetkinlik | Tipik Yöntemler | Basit Önlem Yeterli mi? |
+| :-- | :-- | :-- | :-- | :-- |
+| Sıradan Kullanıcı | Kim olduğunu öğrenmek | Düşük | IP bakma, link gönderme | Evet |
+| Platform / Şirket | Davranış analizi, profil çıkarma | Orta | Metadata, zamanlama, fingerprint | Hayır |
+| Reklam ve Veri Brokerları | Kimlik eşleştirme | Orta | Cross-site tracking, korelasyon | Hayır |
+| OSINT Araştırmacısı | Kimlik çözümleme | Orta–Yüksek | Sosyal grafik, zamanlama | Çoğu zaman hayır |
+| Devlet veya Kolluk | Kimlik tespiti | Yüksek | ISP kayıtları, trafik korelasyonu | Hayır |
+| İstihbarat Seviyesi | Sürekli izleme | Çok Yüksek | Network-level korelasyon | Pratikte hayır |
 
 ---
 
@@ -169,21 +170,21 @@ Bu seviyede anonimlik, bir araç değil; **süre ve dayanıklılık** meselesidi
 
 # Peki Ne Kullanmam Gerek?
 
-Burada devreye kişisel tecrübelerimden çok gerçekten bu işin içinde ve OPSEC süreçlerini uygulayan, uyguladığı için bağı ağrımayan abilerime danışıp fikir almamdan yola çıkacağız, ben gündelik hayatımda bir opsec meraklısı değilim, bunu gerektirecek bir durumun içinde değilim çünkü ama şimdi söyleyeceklerim gerçekten vaktiyle polisle başı derde girmiş ve kanıt yetersizliği ile temize çıkmış abilerden tavsiyeler olacak. 
+Burada devreye kişisel tecrübelerimden çok gerçekten bu işin içinde ve OPSEC süreçlerini uygulayan, uyguladığı için bağı ağrımayan abilerime danışıp fikir almamdan yola çıkacağız, ben gündelik hayatımda bir opsec meraklısı değilim, bunu gerektirecek bir durumun içinde değilim çünkü ama şimdi söyleyeceklerim gerçekten vaktiyle polisle başı derde girmiş ve kanıt yetersizliği ile temize çıkmış abilerden tavsiyeler olacak.
 
 <Danger>
-  **Bunları sizinle paylaşma amacım kolluk kuvvetlerini veya devlet güçlerini yanıltacak hareketler yapın diye değil, tamamen bilgilendirme amaçlıdır. **
+  \*\*Bunları sizinle paylaşma amacım kolluk kuvvetlerini veya devlet güçlerini yanıltacak hareketler yapın diye değil, tamamen bilgilendirme amaçlıdır. \*\*
 </Danger>
 
 ### Qubes OS
 
-Eğer buraya kadar anlattığım tehdit modellerinde en alt sıraya, yani devletler ve istihbarat servisleri seviyesine kadar indiyseniz; artık hiçbir uygulama veya işletim sistemi sizi kurtarmaz. İşte tam bu noktada karşımıza Qubes OS çıkıyor. 
+Eğer buraya kadar anlattığım tehdit modellerinde en alt sıraya, yani devletler ve istihbarat servisleri seviyesine kadar indiyseniz; artık hiçbir uygulama veya işletim sistemi sizi kurtarmaz. İşte tam bu noktada karşımıza Qubes OS çıkıyor.
 
-Sizin o çok güvendiğiniz Windows veya Linux dağıtımlarında bir pdf dosyasında zararlı bir script varsa, geçmiş olsun bütün sisteminiz, dosyalarınız ve kimliğiniz artık saldırganın elindedir. Qubes ise buna sadece gülüp geçer. Çünkü bu sistem her şeyi birbirinden bağımsız sanal makinelere, yani AppVM’lere böler. Şöyle hayal edin: Banka işlemlerinizi yaptığınız dünya farklıdır, şüpheli dosyaları açtığınız dünya farklıdır, internette anonim takıldığınız Whonix tabanlı dünya bambaşkadır. Bir kutu yansa bile yangın asla diğerine sıçrayamaz. Tarayıcından bir exploit mi yedin? Sadece o anki tarayıcının olduğu sanal makine etkilenir. 
+Sizin o çok güvendiğiniz Windows veya Linux dağıtımlarında bir pdf dosyasında zararlı bir script varsa, geçmiş olsun bütün sisteminiz, dosyalarınız ve kimliğiniz artık saldırganın elindedir. Qubes ise buna sadece gülüp geçer. Çünkü bu sistem her şeyi birbirinden bağımsız sanal makinelere, yani AppVM’lere böler. Şöyle hayal edin: Banka işlemlerinizi yaptığınız dünya farklıdır, şüpheli dosyaları açtığınız dünya farklıdır, internette anonim takıldığınız Whonix tabanlı dünya bambaşkadır. Bir kutu yansa bile yangın asla diğerine sıçrayamaz. Tarayıcından bir exploit mi yedin? Sadece o anki tarayıcının olduğu sanal makine etkilenir.
 
 Tam bir konfor düşmanı, ben 2025 yazında kurup kullanmayı denedim, kullanılıyor ama herşey çok uğraştırıcı ve hali hazırda bir tehdit faktörüm olmadığı için bana çok gereksiz geldi. Bir dosyayı bir alandan diğerine kopyalamak bile bir prosedürdür. Ama zaten anonimlik ve güvenlik dediğin şey, konforun bittiği yerde başlar.
 
-Eğer sadece film izleyip sosyal medyada takılan biriysen Qubes senin için fanteziden öteye geçmez. Ama eğer gerçek anonimlik senin için bir tercih değil zorunluluksa ve "benim sistemimde benden habersiz kuş uçamaz" diyorsan, Qubes senin tek çıkış yolundur. Yazının başında dediğim gibi, anonimlik bir mod değil, bir tasarım kararıdır. Qubes OS bu kararın en radikal ve en tutarlı halidir. 
+Eğer sadece film izleyip sosyal medyada takılan biriysen Qubes senin için fanteziden öteye geçmez. Ama eğer gerçek anonimlik senin için bir tercih değil zorunluluksa ve "benim sistemimde benden habersiz kuş uçamaz" diyorsan, Qubes senin tek çıkış yolundur. Yazının başında dediğim gibi, anonimlik bir mod değil, bir tasarım kararıdır. Qubes OS bu kararın en radikal ve en tutarlı halidir.
 
 ### Whonix
 
@@ -198,7 +199,7 @@ Bu sistemler size konfor vaat etmez, karşılığını sabırla ödediğiniz o m
 # Peki Ya Sen?
 
 Anonimliği sağlamak için tüm yazılımları, araç gereci ve sistemi kurdun, sen peki?\
-Psikolojik olarak ne durumdasın? Egon yüksekmi? Sevgiden beslenirmisin? Kaç kimliği aynı anda yönetebilirsin? Mutlumusun? Sabırlımısın? Motivasyonun ne? Yaşamaktan zevk alıyormusun, alıyorsan bu kadar uğraş niye? Bu disipline ayak uydurabilecek misin? Bunu alışkanlık, takıntı, obsesyon belki paranoya durumna getirmeyi göze aldınmı? 
+Psikolojik olarak ne durumdasın? Egon yüksekmi? Sevgiden beslenirmisin? Kaç kimliği aynı anda yönetebilirsin? Mutlumusun? Sabırlımısın? Motivasyonun ne? Yaşamaktan zevk alıyormusun, alıyorsan bu kadar uğraş niye? Bu disipline ayak uydurabilecek misin? Bunu alışkanlık, takıntı, obsesyon belki paranoya durumna getirmeyi göze aldınmı?
 
 En büyük zafiyet insanın kendisidir, gerçekten birgün hiç patlamayacağını mı düşünüyormusun?
 
@@ -208,4 +209,4 @@ Belki de bizler, dış dünyadan o kadar korkuyoruz ki, bu aşılmaz opsec siste
 
 **Vesselam**
 
-https://www.youtube.com/watch?v=jwaWMYE-Dc0
+[https://www.youtube.com/watch?v=jwaWMYE-Dc0](https://www.youtube.com/watch?v=jwaWMYE-Dc0)
