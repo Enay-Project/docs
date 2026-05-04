@@ -26,12 +26,18 @@ Yukarıdaki görseldeki gibi, karşı tarafa attığın mesaj doğrudan karşıy
   style={{ width:"94%" }}
 />
 
-P2p dediğimiz şey ortadaki serveri kaldırıp doğrudan iletişim kurmaktır. Aktif olarak faal p2p hizmeti veren**tox, jami, briar**  var bunlar ama bunlarda karşı taraf ile iletişim kurarken ip adresiniz ve metadatanız ifşa olur, bu bilgilerden yola çıkarak metadata ile dosyamı gönderdin mesajmı gönderdin ayrımı yapılabilir veya ip adresin ile adresin ifşa olabilir, mesajlarını tox, jami vs şifrelesede şifreleme yalnızca içeriğini korur. Yani gönderdiğin metni, dosyayı veya konuşmayı üçüncü bir kişi okuyamaz. Fakat şifreleme **kiminle, ne zaman, ne kadar süre konuştuğunu** gizlemez.\
-İletişim kurduğun taraf güvenilir değilse karşı taraf senin IP adresini gördüğü için konum bilgine ulaşabilir. Bağlantı sıklığın ve saatlerin üzerinden kullanım alışkanlıkların çıkarılabilir. P2P iletişimde asıl risk, içerikten çok **metadata** ve **IP ifşasıdır**. Tor ağı üzerinden bağlanmak bu bilgileri gizler.
+P2P (eşten‑eşe) sistemleri, merkezi bir sunucuya bağımlı olmayan dağıtık ağlardır. Her _eş_ hem istemci hem sunucu olarak çalışır; bu yapı, sansüre direnç ve yüksek erişilebilirlik sağlar. Ancak standart P2P ağlarında tüm iletişim bir uçtan diğerine doğrudan gönderildiği için, iki temel sorun ortaya çıkar:
 
-<Info>
-  Discord sesli sohbetleride eskiden p2p sistemi kullanırdı.
-</Info>
+- **IP adresi ve metadata ifşası:** Nym araştırması, P2P yapılarının şifreleme kullanmadığı sürece her iki uçtaki IP adreslerinin ve iletişim meta verilerinin açık kaldığını belirtir. İletişimin kiminle, ne zaman ve ne kadar sürdüğü gibi veriler saldırganlar tarafından analiz edilebilir.
+- **Uygulama ve işletim sistemi bilgilerinin açığa çıkması:** Bir saldırgan P2P oturumunda IP adresinin yanı sıra kullanılan yazılım sürümü, işletim sistemi ve kimi zaman paylaşılan dosyaların isimleri gibi verileri de toplayabilir.
+
+Bu nedenle Tox, Jami ve Briar gibi modern P2P iletişim yazılımlarında uçtan uca şifreleme kullanılsa bile, karşı tarafın IP’si doğrudan görüldüğünden anonimlik sağlanamaz. Tor veya VPN üzerinden P2P kullanımı, IP adresinin gizlenmesini ve meta verilerin sınırlandırılmasını sağlayabilir.
+
+## P2P İletişimde Riskler ve Önlemler
+
+- **IP adresi–konum bağlantısı:** Kötü niyetli bir kullanıcı IP adresinizden genel konum bilgilerinizi çıkarabilir ve bağlantı zamanlarını inceleyerek kullanım alışkanlıklarınızı tespit edebilir.
+- **Metadata analizi:** Şifreleme mesaj içeriğini gizler fakat kiminle konuştuğunuz, dosya mı yoksa mesaj mı gönderdiğiniz gibi meta veriler görünür olabilir.
+- **Önlemler:** Tor üzerinden P2P iletişime bağlanmak, IP’nizi gizler ve meta verileri üçüncü taraflardan saklar. Ayrıca P2P istemcisini güvenilir kaynaklardan edinmek, uygulamanın izinlerini gözden geçirmek ve güncellemeleri takip etmek önemlidir.
 
 ## Federated
 
@@ -42,20 +48,17 @@ P2p dediğimiz şey ortadaki serveri kaldırıp doğrudan iletişim kurmaktır. 
   style={{ width:"85%" }}
 />
 
-Bu iletişim tamamen merkeziyetsizdir, ben örnek olarak 2 tane server gösterdim ama bu sayı 2 den fazlaya çıkabiliyor. Birden çok sunucu var ama yine de her kullanıcı bir sunucuya bağlı. P2P gibi doğrudan değil. Temel amaç benim ile karşımda ki kişinin bir nodeye bağlanması ve oradan iletişim kurmamız. Birden fazla nodenin aynı protokole bağlanması sunucuların iletişim kurması durumudur kısaca. Örneğin sen bir federated servise üye olursun, arkadaşın başka bir sunucuda olabilir.\
-Sen mesaj attığında
+ederated modellerde tek merkez yerine birbirleriyle iletişim kurabilen birden fazla sunucu (node) bulunur. Her kullanıcı bir sunucuya kayıt olur, fakat farklı sunuculardaki kullanıcılarla aynı protokol sayesinde haberleşebilir. Bu model e‑posta sistemine benzer: Gmail kullanıcısı Hotmail kullanıcısına e‑posta gönderebilir.
 
-- Önce kendi sunucun (`A Serveri`) mesajı alır.
-- Daha sonra protokol (ör. **ActivityPub**) üzerinden `B Serveri`ne iletir.
-- `B Serveri` mesajı arkadaşına ulaştırır.
-- Her iki sunucu da birbirine güvenlik sertifikaları ve protokollerle bağlıdır.
+ActiviyPub standardına ilişkin makale, federasyonu “merkeziyetsizleştirilmiş ancak birlikte çalışabilir sistemler” olarak tanımlar. Örneğin bir Mastodon sunucusundan başka bir sunucuya gönderilen iletiler, ActivityPub protokolü üzerinden “inbox/outbox” yapılarını kullanarak aktarılır. Çoğu federated ağda içerik sunucularda saklanır; dolayısıyla sunucu yöneticileri mesaj içeriğini görebilir. Sosyal Web Vakfı, ActivityPub’da uçtan uca şifreleme olmadığı için sunucu operatörlerinin mesaj içeriklerini okuyabildiğini, MLS gibi protokollerle şifrelemeyi artırmak için çalışmalar yürütüldüğünü belirtir.
 
-Bu sistemlere örnek olarak e posta sistemleri örnektir, sen gmail hesabı oluşturarak bir hotmail hesabına mail atabilirsin mesela ama bunlar tabiki anonim değil, mail servisin seni tanır ve bilgilerini paylaşmaktan çekinmez.\
-En kusursuz anonimlik için **XMPP** Kullanabilirsin, istediğin sunucudan hesap açabilirsin, hatta kendi XMPP sunucunu kurabilirsin.**OTR**  veya **OMEMO** şifrelemesi ile oldukça anonim kullanılabilir ve tor üzerinden bu sistemi kullanırsan **anonimliğini maksimuma çekersin.**
+## Örnekler ve Anonimlik
 
-**sistemi az buçuk çözdün, şimdi sana örnek birisini göstereyim.**
+- **E‑posta:** Dağıtık bir federated sistemdir; ancak çoğu sağlayıcı kullanıcı kimliğini bilir ve gerekirse otoritelerle paylaşabilir.
+- **XMPP:** Açık standarda dayalı bir anlık mesajlaşma protokolüdür. OMEMO gibi uçtan uca şifreleme eklentileri ile kullanılabilir. OMEMO, mesaj içeriğini korur ve ileriye dönük gizlilik sağlar, ancak meta verileri saklamaz. Ayrıca mesajlar genelde birden fazla sunucu üzerinden geçer.
+- **Matrix:** Matrix sunucuları federated yapıya sahiptir ve uçtan uca şifreleme opsiyoneldir.
 
-## PGP
+# PGP ve Kriptografik İletişim
 
 <img
   src="/images/resim_2025-08-29_024651062.png"
@@ -64,7 +67,13 @@ En kusursuz anonimlik için **XMPP** Kullanabilirsin, istediğin sunucudan hesap
   style={{ width:"74%" }}
 />
 
-PGP kriptografik şifreleme yöntemi ile iletişim kurmaktır, anonimlik budur ustam. Fake bir mail ile keyserver ve key üretiimlerini bilen birisi çok rahat işi çözer. **Public key**, herkesle paylaşılır. Sana mesaj göndermek isteyen kişi bu anahtarı kullanarak mesajını şifreler. **Private key** ise sadece sende bulunur. Sana şifrelenmiş mesajları açabilmek için gereklidir.
+Pretty Good Privacy (PGP), hem simetrik hem de asimetrik şifrelemeyi bir arada kullanır. Varonis’in açıklamasına göre, mesaj gönderici önce rastgele bir oturum anahtarı üretir; bu anahtar mesajı simetrik algoritma ile şifreler. Oturum anahtarı daha sonra alıcının genel anahtarı ile şifrelenir ve mesajla birlikte gönderilir. Alıcı kendi özel anahtarıyla oturum anahtarını çözer ve mesajı açar. PGP’nin temel özellikleri:
+
+1. **Gizlilik:** Özel anahtar olmadan mesaj içeriğini açmak mümkün değildir.
+2. **Kimlik doğrulama ve bütünlük:** İmzalar, mesajın gerçekten göndericiden geldiğini ve değiştirilmediğini kanıtlar.
+3. **Anahtar yönetimi:** Public key’ler herkese açık paylaşılır; private key yalnızca anahtar sahibinde kalır.
+
+PGP içerik gizliliği sağlar ancak meta verileri (kimden kime, ne zaman) saklamaz. Gönderici ve alıcı gerçek e‑posta hizmetleri veya federated sunucular kullandığı için IP ve zaman bilgisi servis tarafından loglanır. Bu nedenle PGP ile anonimlik sağlamak istiyorsanız, sahte bir e‑posta kimliği kullanmalı ve Tor üzerinden bağlanmalısınız.
 
 Örneğin\
 Alıcı, kendi **Public Key** ini yayımlar.
@@ -73,9 +82,9 @@ Alıcı, kendi **Public Key** ini yayımlar.
 - Mesaj yolda yakalansa bile çözülemez, çünkü açmak için gerekli olan **private key** yalnızca alıcıdadır.
 - Alıcı mesajı alır ve Private Key ile şifreyi çözer.
 
-### Kurulum yapak zozik
+### Kurulum yapalım
 
-Tamam yapalım, tüm linux dağıtımlarına kurulu geliyor eğer kurulu değilse komutla kur.
+Tüm linux dağıtımlarına kurulu geliyor eğer kurulu değilse komutla kur.
 
 ```bash
 sudo apt install gnupg -y
@@ -203,32 +212,112 @@ Gizlilik denince aklınıza en yuvarlama tahmin görünmez olmak geliyordur, baz
 Kullanıcı ile sunucu arasındaki tünelin 6’da 5’i kullanıcıyı bilmez. Burada sadece relay’lerden değil, aralarındaki bağlantılardan da bahsediyorum. Benzer şekilde, yolun 6’da 5’i hedefi de bilmez.\
 Onion servisinin guard düğümü, trafik desenlerinden onion servisi için guard olduğunu anlayabilir. Guard kendi IP adresini bilir, ancak hangi onion servisine guard’lık yaptığını bilmez. Bu da kimsenin hedef onion adresini bilmediği anlamına gelir.\
 \
-Tor’un kullandığı DNS benzeri süreç güvenlidir (onion’un Introduction Point’lerini DHT’de bul, bir IP’ye bağlan, onion’a hangi Rendezvous Point’in kullanılacağını bildir, iki taraf da RP’ye bağlanır). Hiç kimse DHT’de hangi onion’un arandığını bilmez; cevabı tutan relay bile bilmez. DNS buna kıyasla gülünç derecede güvensizdir. DNS sunucusu her şeyi bilir (kullanıcı, soru, cevap). Kullanıcı ile sunucu arasındaki herhangi bir güvensiz bağlantı noktası her şeyi ifşa eder. DNS sunucusu istediği zaman yanıtları sahteleyebilir ya da sansürleyebilir.\
-\
-Bir zırvalık varya hani, vpne veya Tor'a bağlansan bile modemin geçmişi seni ele verir,:)makine öğrenimi tor ağına bağlı herkesi hop diye listeler tutuklatırdı.\
-Deminde anlattığım gibi tor sayesinde kişiler hem kullanıcıyı hemde hedefi kestiremez, modemin logu seni sadece başka bir ip ye bağlı olduğunu görür, o ip nereye bağlı işte onu kestiremez, onu ancak vpn servisi log verirse görebilir. Ama torda böyle bir muhattapları yok çünkü torun kurucuları bile kim ne yapıyor bilmiyor. Çünkü 6 farklı ip ye bağlı bir sistemin içindesin.
+Tor’un kullandığı DNS benzeri süreç güvenlidir (onion’un Introduction Point’lerini DHT’de bul, bir IP’ye bağlan, onion’a hangi Rendezvous Point’in kullanılacağını bildir, iki taraf da RP’ye bağlanır). Hiç kimse DHT’de hangi onion’un arandığını bilmez; cevabı tutan relay bile bilmez. DNS buna kıyasla gülünç derecede güvensizdir. DNS sunucusu her şeyi bilir (kullanıcı, soru, cevap). Kullanıcı ile sunucu arasındaki herhangi bir güvensiz bağlantı noktası her şeyi ifşa eder. DNS sunucusu istediği zaman yanıtları sahteleyebilir ya da sansürleyebilir.
 
 ![Resim 2025 10 17 011545658 Pn](/images/resim_2025-10-17_011545658.png)
 
-Bir onion servisine başarıyla bağlandığını görüyorsan, gerçekten bağlanmışsındır ve bunu güvenli şekilde yapmışsındır. TLS böyle bir garanti sunmaz. Güncel tarayıcıların otomatik filtreleme sayesinde tıkladığın bir bağlantı güvensizse tarayıcın ya uyarı verir yada siteyi hiç açmaz. Eskiden tarayıcılar bu kadar güvenli değilken tıkladığın bir link senin cihazına senden habersiz dosya atabiliyor, komut çalıştırabiliyordu.
+Tor, çok katmanlı soğan yönlendirme sistemi kullanır. Wikipedia’daki açıklamaya göre Tor istemcisi, trafiği üç düğüm üzerinden geçirir: _guard_ (giriş), _middle_ ve _exit_ düğümleri. İstemci her bağlantı için üç rastgele düğüm seçer ve verinin her katmanını bir sonraki düğüm dışında kimse açamaz. Böylece hiçbir düğüm hem kaynak IP’sini hem de hedef IP’sini bilmez.
 
-### Monero
+Onion hizmetleri ise, istemci ile onion servisi arasında bağlantının Tor dışına çıkmamasını sağlar; iki taraf da kendi _guard_ ve _middle_ düğümlerini seçer ve bağlantı bir _rendezvous_ düğümü üzerinden gerçekleşir. Bu mekanizma, her iki tarafın adreslerini gizler. DriveLock’un blogu, Tor’un giriş, orta ve çıkış düğümleriyle çok katmanlı şifreleme kullandığını ve her düğümün yalnızca kendinden önceki ve sonraki düğümleri bildiğini açıklar; çıkış düğümü TLS olmayan trafikleri görebileceğinden HTTPS kullanmak önemlidir.
 
-Monero, 2014 yılında piyasaya çıkan ve gizliliğe odaklanan bir **kripto para birimi**dir. Bitcoin gibi blockchain teknolojisini kullanır, ancak onu özel yapan şey tamamen **anonimlik ve izlenemezlik** üzerine kurulmuş olmasıdır.\
-Bitcoin veya Ethereum gibi kripto paralarda tüm işlemler herkesin görebileceği şekilde blok zincirinde tutulur.\
-Birisi senin cüzdan adresini bilirse, gönderdiğin veya aldığın **her miktarı** görebilir.\
-Monero’da ise bu bilgi **şifrelenmiştir**. Yani dışarıdan bakan biri:
+## Tor’un Güçlü Yönleri
 
-- Kimin kime para gönderdiğini,
-- Ne kadar gönderildiğini,
-- Hangi adresten çıktığını\
-  asla göremez.
+- **IP gizleme:** Kaynak ve hedef IP adresleri aynı anda hiçbir düğüm tarafından bilinmez.
+- **Dağıtık yapı:** Merkezi otorite yoktur; gönüllüler tarafından işletilen binlerce düğümden oluşur.
+- **Onion servisleri:** Web siteleri Tor üzerinden barındırılabilir; her iki tarafın da adresi saklanır.
+- **DNS güvenliği:** Tor’un DHT tabanlı adres çözümlemesi, klasik DNS’e göre sansür ve manipülasyon riskini azaltır.
+
+## Tor Kullanırken Dikkat Edilmesi Gerekenler
+
+- **Çıkış düğümü tehlikesi:** HTTPS olmayan sitelerde çıkış düğümü trafik içeriğini görebilir.
+- **Zamanlama analizi:** Güçlü gözlemciler giriş ve çıkış akışlarını korelasyonla eşleştirip kimlik tespiti yapabilir.
+- **Eklentiler ve scriptler:** Tarayıcı eklentileri ve JavaScript’ler IP sızıntısına neden olabilir; Tor Browser dışındaki tarayıcılar kullanılmamalıdır.
+- **VPN ile birlikte kullanım:** Bazı kullanıcılar, Tor’dan önce VPN kullanarak internet sağlayıcısının Tor kullanıldığını görmesini engeller. Fakat VPN sağlayıcısının log tutmadığından emin olmak gerekir.
+
+# Monero
+
+Monero, geleneksel blok zincirlerinde saydam olan işlem verilerini gizlemek için çok katmanlı kriptografi kullanır. Monero projesi, gizliliğin üç öğe ile sağlandığını açıklar: **gönderenin kimliği (ring signatures), alıcının adresi (stealth addresses)** ve **gönderilen miktar (Ring Confidential Transactions)**. Bu teknolojilerin detayları:
+
+## 1. Ring Signatures 
+
+Ring imzaları, bir mesajın bir grup tarafından imzalandığını gösterir; imzanın hangi anahtara ait olduğu matematiksel olarak belirlenemez. Monero’da her işlem çıktısını imzalamak için, harcanan gerçek çıktı anahtarı ve zincirdeki diğer rastgele seçilmiş (decoy) anahtarlar bir halka oluşturur. Bu yapı:
+
+- **Göndericiyi gizler:** Hangi çıktının harcandığı bilinemez, bu da işlemlerin izlenmesini engeller.
+- **Plausible deniability (inkâr edilebilirlik):** Decoy’lar sayesinde hangi anahtarın gerçek olduğu kanıtlanamaz.
+
+## 2. Stealth Addresses
+
+Moneropedia’ya göre, alıcı tek bir genel adres yayınlar; ancak her işlem için gönderici tarafından rastgele bir _tek seferlik_ adres (one‑time address) oluşturulur. Zincirde görülen bu adresler, alıcının ana adresiyle eşleştirilemez ve sadece alıcı, özel _view key_ ile hangi işlemlerin kendisine ait olduğunu görebilir. Böylece dış gözlemciler bir alıcının kaç kez ödeme aldığını veya adreslerinin birbirine bağlı olup olmadığını anlayamaz.
+
+## 3. RingCT (Ring Confidential Transactions)
+
+RingCT, işlem miktarlarını gizlemek için çok katmanlı linkable ring signatures ve Pedersen taahhütleri kullanır. 2017’den beri tüm işlemler RingCT formatında yapılır ve her işlemde gönderilen miktar şifrelenir. Bir Pedersen taahhüdü, _maskelenmiş_ miktarı içeren bir değer yayınlar; aynı girdi ve çıktı toplamlarının eşit olduğu doğrulanabilir ancak miktar bilinmez.
+
+## 4. Bulletproofs
+
+RingCT’nin kullandığı _range proof_’ların boyutunu ve işlem ücretlerini azaltmak için Monero, 2018’de _Bulletproofs_ adlı sıfır bilgi kanıtlarını uygulamaya koydu. Bu kanıtlar, birden fazla işlem miktarının geçerli aralıkta olduğunu küçük bir delil ile kanıtlar; Monero’nun bloguna göre bulletproofs devreye girdiğinde işlem boyutu ve ücretleri %80’den fazla azaldı.
+
+## 5. Dandelion\+\+
+
+Monero’ya özel “Dandelion\+\+” protokolü (en son sürüm 2020’den itibaren) ağ katmanında IP adresini gizlemek için tasarlanmıştır. Normalde bir işlem ilk düğüme yayınlandığında, gözlemciler ilk yayını yapan IP adresini tespit edebilir. Dandelion\+\+ işlemi önce rastgele düğümler üzerinden “sap” fazında yayıp daha sonra “çiçek” fazında tüm ağa dağıtarak ilk yayını yapan düğümü maskeler. Bu sayede işlem kaynağı IP adresinin tespit edilmesi zorlaşır.
+
+## Monero’nun Kullanım Sırasında Yapılan OPSEC Hataları
+
+Monero protokolü gizlilik sağlar; ancak hatalı kullanım, gerçek kimliğin açığa çıkmasına yol açar. Aşağıdaki noktalar **NoOnes** blogunda ve **CYJAX** raporunda vurgulanmaktadır:
+
+1. **KYC Borsalarından Doğrudan Çekim:** Monero almak için KYC (Kimliğini Tanı) gerektiren borsayı kullanmak, adresinizin ve kimliğinizin eşleştirilmesine neden olur. Borsadan çekim yaptığınız cüzdan adresi borsa kayıtlarında görünür. Çözüm: KYC gerektirmeyen borsaları veya _atomic swap_ gibi merkeziyetsiz takasları kullanın.
+2. **Adres Yeniden Kullanımı ve Off‑chain Paylaşım:** Stealth adresler oluşturulsa da bazı kullanıcılar ana adreslerini forumlarda veya sosyal medya profillerinde paylaşır. Aynı adresin bir illegal hizmette ve kişisel hesapta kullanılması, adreslerin birbiriyle ilişkilendirilmesine neden olur. Bu, Monero zincirinden bağımsız bir OPSEC hatasıdır.
+3. **Cüzdan Verilerinin Korunmaması:** Cüzdan dosyalarını veya logları şifresiz saklamak, cihaz ele geçirildiğinde adreslerin ve işlem geçmişinin incelenmesine yol açar.
+4. **IP ve Ağ İzleme:** İşlemler Tor veya VPN olmadan yayınlandığında, ISP veya ağ gözetleme noktaları IP adresinizi loglayabilir. Ayrıca Dandelion\+\+’ı etkinleştirmemek, işlemin kaynağının tespitine karşı savunmasız bırakır.
+5. **Karmaşık OPSEC:** Bazı kullanıcılar bir işlemde Monero alırken, hemen ardından başka zincirlere transfer yapar veya fiat’a çevirir. Eğer bu adımlar KYC borsalarda yapılıyorsa, zincirler arası bağlantılar kimliğinizi ortaya çıkarabilir. CYJAX’ın örneğinde Bob aynı cüzdan adresini hem ailesinden hediye almak için hem de yasa dışı bir markette ödeme almak için kullandığından adresi ile kimliği eşleştirilmiştir.
+
+Bu hatalardan kaçınmak için:
+
+- Monero edinirken KYC gerektirmeyen yöntemler kullanın; bir borsadan çekim yaptıktan sonra hemen başka cüzdana göndererek izleri koparın.
+- Ana adresinizi hiçbir yerde paylaşmayın; her işlem için yeni _sub‑address_ kullanın.
+- Cüzdan dosyalarını şifreleyin ve güvenilir dış disklerde saklayın.
+- İşlemleri Tor üzerinden yapın ve Dandelion\+\+ destekleyen bir node’a bağlanın.
   <img
     src="/images/görsel_2025-10-21_200655679.png"
     alt="Görsel 2025 10 21 200655679 Pn"
     style={{ width:"82%" }}
   />
-  \
+  # OS Seviyesinde Anonimlik ve İnkar Edilebilirlik
+  Anonimlik yalnızca uygulama düzeyindeki şifreleme ile sağlanamaz; işletim sistemi ve disk seviyesinde de iz bırakmamak gerekir. Bu bölümde Tails, Whonix/Qubes OS ve gizlenebilir dosya sistemleri gibi yöntemler anlatılmaktadır.
+  ## Tails (The Amnesic Incognito Live System)
+  <Frame>
+    ![Tails Logo Flat Inverted Svg](/images/Tails-logo-flat-inverted.svg.png)
+  </Frame>
+  Tails, USB veya DVD’den çalışan, Debian tabanlı canlı bir işletim sistemidir; hiçbir şey yüklemeden çalışır ve kapandığında geride veri bırakmaz.
+  - **Amnesic Yapı:** Her açılışta sıfırdan başlar; RAM’deki veriler otomatik olarak silinir. İsteğe bağlı _Persistent Storage_ özelliği bile şifrelenmiştir.
+  - **Tor Tabanlı Trafik:** Tails tüm ağ trafiğini varsayılan olarak Tor üzerinden yönlendirir. Bu, IP adresi gizliliği sağlar ve DNS sansüründen kaçınmaya yardımcı olur.
+  - **Minimum Uygulama Profili:** Yalnızca iyi denetlenmiş yazılımlar içerir; ek uygulamalarla attack surface artmaz.
+  Tails, geçici ve iz bırakmayan anonim oturumlar için uygundur. Ancak uzun süreli işler veya sürekli güncellenmesi gereken yazılımlar için verimlilik sınırlıdır.
+  ## Whonix
+  <Frame>
+    ![5ac973ff4302e69269667e09e67d850c0b628c7a 2 690x255](/images/5ac973ff4302e69269667e09e67d850c0b628c7a_2_690x255.jpeg)
+  </Frame>
+  İki sanal makineden oluşan ve tüm trafiği Tor üzerinden yönlendiren bir anonim işletim sistemi olarak çalışır.
+  - **Çift‑VM mimarisi:** `Whonix‑Gateway` Tor ile bağlantı kurar, `Whonix‑Workstation` ise internete doğrudan erişimi olmayan izole bir ortamda çalışır. Bu sayede Workstation kompromize edilse bile gerçek IP adresine ulaşılamaz.
+  - **IP ve DNS sızıntı koruması:** Gateway tüm trafiği Tor üzerinden geçirmek için yapılandırılmıştır; Workstation’dan istekler çıkış yapamaz.
+  - **Disposable VM’ler:** Riskli işlemler için tek kullanımlık sanal makineler oluşturulabilir.
+  - **Kullanım:** Whonix, VirtualBox, KVM veya Qubes OS üzerinde çalışabilir; Tor Browser, OnionShare, PGP araçları gibi uygulamalar önceden entegredir.
+  Whonix, Tails’e kıyasla kalıcı ve esnek bir çalışma ortamı sunar; ancak host işletim sistemi veya sanallaştırma yazılımının güvenliği de önemlidir.
+  ## Qubes OS
+  <Frame>
+    ![Qubes Logo Icon Name Slogan Fb](/images/qubes-logo-icon-name-slogan-fb-1.png)
+  </Frame>
+  Qubes OS, Xen hipervizörü kullanarak her uygulamayı farklı bir sanal makine (qube) içinde çalıştıran, güvenlik odaklı bir işletim sistemidir. GeeksforGeeks, Qubes OS’yi “donanım tabanlı sanallaştırma ile uygulamaları ayrı ortamlara izole ederek bir bölgede meydana gelen güvenlik ihlalinin tüm sistemi etkilemesini önleyen” bir sistem olarak tanımlar.
+  - **Güvenlik yoluyla izolasyon:** Farklı görevler (web tarayıcı, banka işlemi, iş evrakı) farklı qube’lerde yürütülür; böylece bir qube’deki kötü amaçlı yazılım diğerlerine sıçrayamaz.
+  - **Şablon ve Uygulama Qube’leri:** Şablon (template) qube’ler bir taban işletim sistemi sunar; birden fazla uygulama qube’i bu şablondan türetilir ve kendi kullanıcı verilerini bağımsız saklar.
+  - **Disposable Qube’ler:** Şüpheli dosya veya bağlantıları açmak için geçici qube’ler kullanılabilir; oturum sonunda tamamen silinir.
+  - **Varsayılan Tor entegrasyonu:** Qubes ile Whonix birlikte kullanılabilir; Qubes’ta Whonix-Gateway ve Workstation qube’leri kurularak tüm internet trafiği Tor üzerinden yönlendirilebilir.
+  Qubes OS, karmaşık bir kurulum gerektirir ve donanım gereksinimleri yüksektir ancak güvenlik açısından güçlü izolasyon sağlar ve anonim çalışma ortamları oluşturmak için uygun bir temel sunar.
+  ## Gizlenebilir Dosya Sistemleri ve İnkar Edilebilirlik
+  Bir saldırgan sizi bir şifre veya disk anahtarını açıklamaya zorladığında, “plausible deniability” sağlayan teknolojilere ihtiyaç duyulur. 
+  1. **Hidden Sürümler ve Gizli İşletim Sistemi:** VeraCrypt, bir şifreli bölüme başka bir _gizli bölüm_ yerleştirmenizi sağlar. Disk okunmadan önce gizli bölümün varlığı tespit edilemez; disk yalnızca rastgele veri içeriyor gibi görünür. Bu sayede dışarıdan biri diskin içerisinde gizli bir alan olduğunu kanıtlayamaz. Ayrıca TrueCrypt dökümanı, sistem diskini şifrelerken bir _decoy_ (sahte) işletim sistemi ile gizli bir işletim sistemi oluşturabileceğinizi; iki farklı parola belirleyip zorla sorulduğunda sahte sistemin parolasını verebileceğinizi açıklar. Gizli sistem, gizli bölümde saklanır ve varlığı ispatlanamaz.
+  2. **Rastgele Veri Görünümü:** Şifreli bölümler rastgele veri olarak görünür; dosya sistemi imzası yoktur. Bu durum, belirli bir bölümün şifrelenmiş olduğunu ispatlamayı zorlaştırır. Bir dış gözlemci, diskinin “boş alan” veya güvenli silme ile doldurulmuş olduğunu iddia edebilirsiniz.
+  Ancak bazı adli yazılımlar bölüm içinde entropi analizi yaparak şifreli alanları bulabilir, dolayısıyla inkar edilebilirliğin tamamen garanti edilmediğini unutmamak gerekir.\
   \
   NOKYC servisler\
   VDS - [cockbox.org](http://cockbox.org) // Bunun mail hizmeti güzel ama kapattı sanırım bi kontrol edersiniz, vincent kralın sitesi.\
