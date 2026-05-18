@@ -33,8 +33,7 @@
               "index",
               "misyon",
               "yolhar",
-              "map",
-              "kendi-yolum"
+              "map"
             ]
           }
         ]
@@ -93,23 +92,6 @@
         ]
       },
       {
-        "tab": "Tools",
-        "groups": [
-          {
-            "group": "Bilgilendirme",
-            "pages": [
-              "Tools/bilgilendirme"
-            ]
-          },
-          {
-            "group": "Cracking",
-            "pages": [
-              "Tools/cracking"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "CVE",
         "groups": [
           {
@@ -121,10 +103,7 @@
         ]
       },
       {
-        "tab": "Offtopic",
-        "pages": [
-          "this-is-my-bug-fuck-off"
-        ]
+        "tab": "Offtopic"
       }
     ]
   },
