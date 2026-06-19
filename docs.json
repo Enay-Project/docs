@@ -103,7 +103,15 @@
         ]
       },
       {
-        "tab": "Offtopic"
+        "tab": "Offtopic",
+        "dropdowns": [
+          {
+            "dropdown": "philosophy",
+            "pages": [
+              "etik"
+            ]
+          }
+        ]
       }
     ]
   },
