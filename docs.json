@@ -108,7 +108,8 @@
           {
             "dropdown": "philosophy",
             "pages": [
-              "etik"
+              "etik",
+              "normal"
             ]
           }
         ]
