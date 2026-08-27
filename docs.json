@@ -50,7 +50,6 @@
           {
             "group": "Opsec",
             "pages": [
-              "Visec/opsec/tor",
               "Visec/opsec/safenet",
               "Visec/opsec/honeypot",
               "Visec/opsec/torirc",
