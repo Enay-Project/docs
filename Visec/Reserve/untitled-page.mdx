@@ -1,6 +1,5 @@
 ---
 title: "Bir Malware Çalıştırıldığında Windows'ta Gerçekte Ne Oluyor?"
-description: "PE loader'a, process nesnelerinden C2 trafiğine kadar Windows içindeki bütün yürütme zinciri."
 icon: "microchip"
 ---
 
@@ -23,7 +22,7 @@ flowchart TD
 
 Dolayısıyla asıl sorumuz “malware ne yaptı?” kadar “Windows bu davranışın gerçekleşebilmesi için hangi nesneleri ve geçişleri üretti?” olmalı. İkinci soruyu sormadan birincisine verilen cevap eksik kalır.
 
-## 2. Analiz 
+## 2. Analiz
 
 Eski C2 alan adları yeniden kaydedilebilir, loader yeni bir payload alabilir veya örnek DGA üzerinden başka bir hedefe gidebilir. En güvenli tasarım, Windows analiz VM'inin yalnızca kontrollü bir servis simülatörüne ulaşabildiği internal/host-only ağdır.
 

