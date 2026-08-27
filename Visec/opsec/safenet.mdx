@@ -8,8 +8,7 @@ Gündelik kullanıdığın internette, herhangibi bir ek güvenlik önlemi kulla
 
 # Güvenli iletişimi Nasıl Sağlarım
 
-Güvenli iletişim dediğim şey aslında server side odaklı iletişim sistemlerine alternatifler sunmak olacak.\
-Whatsapp, instagram gibi uygulamalar sence senin mesajlarını koruyabiliyormu?
+Güvenli iletişim dediğim şey aslında server side odaklı iletişim sistemlerine alternatifler sunmak olacak.<br />Whatsapp, instagram gibi uygulamalar sence senin mesajlarını koruyabiliyormu?
 
 ## Client Server
 
@@ -75,8 +74,7 @@ Pretty Good Privacy (PGP), hem simetrik hem de asimetrik şifrelemeyi bir arada 
 
 PGP içerik gizliliği sağlar ancak meta verileri (kimden kime, ne zaman) saklamaz. Gönderici ve alıcı gerçek e‑posta hizmetleri veya federated sunucular kullandığı için IP ve zaman bilgisi servis tarafından loglanır. Bu nedenle PGP ile anonimlik sağlamak istiyorsanız, sahte bir e‑posta kimliği kullanmalı ve Tor üzerinden bağlanmalısınız.
 
-Örneğin\
-Alıcı, kendi **Public Key** ini yayımlar.
+Örneğin<br />Alıcı, kendi **Public Key** ini yayımlar.
 
 - Gönderen, mesajı bu public key ile şifreler.
 - Mesaj yolda yakalansa bile çözülemez, çünkü açmak için gerekli olan **private key** yalnızca alıcıdadır.
@@ -104,8 +102,7 @@ sudo apt install gnupg -y
   style={{ width:"56%" }}
 />
 
-Bu işlemlerden sonra O yazdıktan sonra şifre belirleyin ve haneye hayırlı olsun ustam.\
-aşşağıdaki komut ilede public keyini herkese açabilirsin
+Bu işlemlerden sonra O yazdıktan sonra şifre belirleyin ve haneye hayırlı olsun ustam.<br />aşşağıdaki komut ilede public keyini herkese açabilirsin
 
 <img
   src="/images/resim_2025-08-29_030541701.png"
@@ -209,10 +206,7 @@ Gizlilik denince aklınıza en yuvarlama tahmin görünmez olmak geliyordur, baz
 
 ## Neden Tor
 
-Kullanıcı ile sunucu arasındaki tünelin 6’da 5’i kullanıcıyı bilmez. Burada sadece relay’lerden değil, aralarındaki bağlantılardan da bahsediyorum. Benzer şekilde, yolun 6’da 5’i hedefi de bilmez.\
-Onion servisinin guard düğümü, trafik desenlerinden onion servisi için guard olduğunu anlayabilir. Guard kendi IP adresini bilir, ancak hangi onion servisine guard’lık yaptığını bilmez. Bu da kimsenin hedef onion adresini bilmediği anlamına gelir.\
-\
-Tor’un kullandığı DNS benzeri süreç güvenlidir (onion’un Introduction Point’lerini DHT’de bul, bir IP’ye bağlan, onion’a hangi Rendezvous Point’in kullanılacağını bildir, iki taraf da RP’ye bağlanır). Hiç kimse DHT’de hangi onion’un arandığını bilmez; cevabı tutan relay bile bilmez. DNS buna kıyasla gülünç derecede güvensizdir. DNS sunucusu her şeyi bilir (kullanıcı, soru, cevap). Kullanıcı ile sunucu arasındaki herhangi bir güvensiz bağlantı noktası her şeyi ifşa eder. DNS sunucusu istediği zaman yanıtları sahteleyebilir ya da sansürleyebilir.
+Kullanıcı ile sunucu arasındaki tünelin 6’da 5’i kullanıcıyı bilmez. Burada sadece relay’lerden değil, aralarındaki bağlantılardan da bahsediyorum. Benzer şekilde, yolun 6’da 5’i hedefi de bilmez.<br />Onion servisinin guard düğümü, trafik desenlerinden onion servisi için guard olduğunu anlayabilir. Guard kendi IP adresini bilir, ancak hangi onion servisine guard’lık yaptığını bilmez. Bu da kimsenin hedef onion adresini bilmediği anlamına gelir.<br /><br />Tor’un kullandığı DNS benzeri süreç güvenlidir (onion’un Introduction Point’lerini DHT’de bul, bir IP’ye bağlan, onion’a hangi Rendezvous Point’in kullanılacağını bildir, iki taraf da RP’ye bağlanır). Hiç kimse DHT’de hangi onion’un arandığını bilmez; cevabı tutan relay bile bilmez. DNS buna kıyasla gülünç derecede güvensizdir. DNS sunucusu her şeyi bilir (kullanıcı, soru, cevap). Kullanıcı ile sunucu arasındaki herhangi bir güvensiz bağlantı noktası her şeyi ifşa eder. DNS sunucusu istediği zaman yanıtları sahteleyebilir ya da sansürleyebilir.
 
 ![Resim 2025 10 17 011545658 Pn](/images/resim_2025-10-17_011545658.png)
 
@@ -238,7 +232,7 @@ Onion hizmetleri ise, istemci ile onion servisi arasında bağlantının Tor dı
 
 Monero, geleneksel blok zincirlerinde saydam olan işlem verilerini gizlemek için çok katmanlı kriptografi kullanır. Monero projesi, gizliliğin üç öğe ile sağlandığını açıklar: **gönderenin kimliği (ring signatures), alıcının adresi (stealth addresses)** ve **gönderilen miktar (Ring Confidential Transactions)**. Bu teknolojilerin detayları:
 
-## 1. Ring Signatures 
+## 1. Ring Signatures
 
 Ring imzaları, bir mesajın bir grup tarafından imzalandığını gösterir; imzanın hangi anahtara ait olduğu matematiksel olarak belirlenemez. Monero’da her işlem çıktısını imzalamak için, harcanan gerçek çıktı anahtarı ve zincirdeki diğer rastgele seçilmiş (decoy) anahtarlar bir halka oluşturur. Bu yapı:
 
@@ -291,8 +285,7 @@ Bu hatalardan kaçınmak için:
   Tails, USB veya DVD’den çalışan, Debian tabanlı canlı bir işletim sistemidir; hiçbir şey yüklemeden çalışır ve kapandığında geride veri bırakmaz.
   - **Amnesic Yapı:** Her açılışta sıfırdan başlar; RAM’deki veriler otomatik olarak silinir. İsteğe bağlı _Persistent Storage_ özelliği bile şifrelenmiştir.
   - **Tor Tabanlı Trafik:** Tails tüm ağ trafiğini varsayılan olarak Tor üzerinden yönlendirir. Bu, IP adresi gizliliği sağlar ve DNS sansüründen kaçınmaya yardımcı olur.
-  - **Minimum Uygulama Profili:** Yalnızca iyi denetlenmiş yazılımlar içerir; ek uygulamalarla attack surface artmaz.
-  Tails, geçici ve iz bırakmayan anonim oturumlar için uygundur. Ancak uzun süreli işler veya sürekli güncellenmesi gereken yazılımlar için verimlilik sınırlıdır.
+  - **Minimum Uygulama Profili:** Yalnızca iyi denetlenmiş yazılımlar içerir; ek uygulamalarla attack surface artmaz. Tails, geçici ve iz bırakmayan anonim oturumlar için uygundur. Ancak uzun süreli işler veya sürekli güncellenmesi gereken yazılımlar için verimlilik sınırlıdır.
   ## Whonix
   <Frame>
     ![5ac973ff4302e69269667e09e67d850c0b628c7a 2 690x255](/images/5ac973ff4302e69269667e09e67d850c0b628c7a_2_690x255.jpeg)
@@ -301,8 +294,7 @@ Bu hatalardan kaçınmak için:
   - **Çift‑VM mimarisi:** `Whonix‑Gateway` Tor ile bağlantı kurar, `Whonix‑Workstation` ise internete doğrudan erişimi olmayan izole bir ortamda çalışır. Bu sayede Workstation kompromize edilse bile gerçek IP adresine ulaşılamaz.
   - **IP ve DNS sızıntı koruması:** Gateway tüm trafiği Tor üzerinden geçirmek için yapılandırılmıştır; Workstation’dan istekler çıkış yapamaz.
   - **Disposable VM’ler:** Riskli işlemler için tek kullanımlık sanal makineler oluşturulabilir.
-  - **Kullanım:** Whonix, VirtualBox, KVM veya Qubes OS üzerinde çalışabilir; Tor Browser, OnionShare, PGP araçları gibi uygulamalar önceden entegredir.
-  Whonix, Tails’e kıyasla kalıcı ve esnek bir çalışma ortamı sunar; ancak host işletim sistemi veya sanallaştırma yazılımının güvenliği de önemlidir.
+  - **Kullanım:** Whonix, VirtualBox, KVM veya Qubes OS üzerinde çalışabilir; Tor Browser, OnionShare, PGP araçları gibi uygulamalar önceden entegredir. Whonix, Tails’e kıyasla kalıcı ve esnek bir çalışma ortamı sunar; ancak host işletim sistemi veya sanallaştırma yazılımının güvenliği de önemlidir.
   ## Qubes OS
   <Frame>
     ![Qubes Logo Icon Name Slogan Fb](/images/qubes-logo-icon-name-slogan-fb-1.png)
@@ -311,18 +303,8 @@ Bu hatalardan kaçınmak için:
   - **Güvenlik yoluyla izolasyon:** Farklı görevler (web tarayıcı, banka işlemi, iş evrakı) farklı qube’lerde yürütülür; böylece bir qube’deki kötü amaçlı yazılım diğerlerine sıçrayamaz.
   - **Şablon ve Uygulama Qube’leri:** Şablon (template) qube’ler bir taban işletim sistemi sunar; birden fazla uygulama qube’i bu şablondan türetilir ve kendi kullanıcı verilerini bağımsız saklar.
   - **Disposable Qube’ler:** Şüpheli dosya veya bağlantıları açmak için geçici qube’ler kullanılabilir; oturum sonunda tamamen silinir.
-  - **Varsayılan Tor entegrasyonu:** Qubes ile Whonix birlikte kullanılabilir; Qubes’ta Whonix-Gateway ve Workstation qube’leri kurularak tüm internet trafiği Tor üzerinden yönlendirilebilir.
-  Qubes OS, karmaşık bir kurulum gerektirir ve donanım gereksinimleri yüksektir ancak güvenlik açısından güçlü izolasyon sağlar ve anonim çalışma ortamları oluşturmak için uygun bir temel sunar.
+  - **Varsayılan Tor entegrasyonu:** Qubes ile Whonix birlikte kullanılabilir; Qubes’ta Whonix-Gateway ve Workstation qube’leri kurularak tüm internet trafiği Tor üzerinden yönlendirilebilir. Qubes OS, karmaşık bir kurulum gerektirir ve donanım gereksinimleri yüksektir ancak güvenlik açısından güçlü izolasyon sağlar ve anonim çalışma ortamları oluşturmak için uygun bir temel sunar.
   ## Gizlenebilir Dosya Sistemleri ve İnkar Edilebilirlik
-  Bir saldırgan sizi bir şifre veya disk anahtarını açıklamaya zorladığında, “plausible deniability” sağlayan teknolojilere ihtiyaç duyulur. 
+  Bir saldırgan sizi bir şifre veya disk anahtarını açıklamaya zorladığında, “plausible deniability” sağlayan teknolojilere ihtiyaç duyulur.
   1. **Hidden Sürümler ve Gizli İşletim Sistemi:** VeraCrypt, bir şifreli bölüme başka bir _gizli bölüm_ yerleştirmenizi sağlar. Disk okunmadan önce gizli bölümün varlığı tespit edilemez; disk yalnızca rastgele veri içeriyor gibi görünür. Bu sayede dışarıdan biri diskin içerisinde gizli bir alan olduğunu kanıtlayamaz. Ayrıca TrueCrypt dökümanı, sistem diskini şifrelerken bir _decoy_ (sahte) işletim sistemi ile gizli bir işletim sistemi oluşturabileceğinizi; iki farklı parola belirleyip zorla sorulduğunda sahte sistemin parolasını verebileceğinizi açıklar. Gizli sistem, gizli bölümde saklanır ve varlığı ispatlanamaz.
-  2. **Rastgele Veri Görünümü:** Şifreli bölümler rastgele veri olarak görünür; dosya sistemi imzası yoktur. Bu durum, belirli bir bölümün şifrelenmiş olduğunu ispatlamayı zorlaştırır. Bir dış gözlemci, diskinin “boş alan” veya güvenli silme ile doldurulmuş olduğunu iddia edebilirsiniz.
-  Ancak bazı adli yazılımlar bölüm içinde entropi analizi yaparak şifreli alanları bulabilir, dolayısıyla inkar edilebilirliğin tamamen garanti edilmediğini unutmamak gerekir.\
-  \
-  NOKYC servisler\
-  VDS - [cockbox.org](http://cockbox.org) // Bunun mail hizmeti güzel ama kapattı sanırım bi kontrol edersiniz, vincent kralın sitesi.\
-  coin - [https://retoswap.com](https://retoswap.com) // Bu çok sağlam bi hizmet. bi göz at.\
-  coin exchanger - [https://exchanger.infinity.taxi](https://exchanger.infinity.taxi) // Sorunsuz\
-  chat - [https://simplex.chat](https://simplex.chat) // Bunu anlatmıştım - [TIKLA](https://ofsec.visec.net.tr/Visec/DarkWeb/safenet#anonymous-chat-örneği)\
-  vpn - [https://mullvad.net](https://mullvad.net) // [https://xeovo.com](https://xeovo.com) // ikiside iyidir fiyatlarda benzer.\
-  pazar- [https://xmrbazaar.com](https://xmrbazaar.com) // Birçok alanda birçok hizmet alabilirsin monero ile.
+  2. **Rastgele Veri Görünümü:** Şifreli bölümler rastgele veri olarak görünür; dosya sistemi imzası yoktur. Bu durum, belirli bir bölümün şifrelenmiş olduğunu ispatlamayı zorlaştırır. Bir dış gözlemci, diskinin “boş alan” veya güvenli silme ile doldurulmuş olduğunu iddia edebilirsiniz. Ancak bazı adli yazılımlar bölüm içinde entropi analizi yaparak şifreli alanları bulabilir, dolayısıyla inkar edilebilirliğin tamamen garanti edilmediğini unutmamak gerekir.<br /><br />NOKYC servisler<br />VDS - [cockbox.org](http://cockbox.org) // Bunun mail hizmeti güzel ama kapattı sanırım bi kontrol edersiniz, vincent kralın sitesi.<br />coin - [https://retoswap.com](https://retoswap.com) // Bu çok sağlam bi hizmet. bi göz at.<br />coin exchanger - [https://exchanger.infinity.taxi](https://exchanger.infinity.taxi) // Sorunsuz<br />chat - [https://simplex.chat](https://simplex.chat) // Bunu anlatmıştım - [TIKLA](https://ofsec.visec.net.tr/Visec/DarkWeb/safenet#anonymous-chat-örneği)<br />vpn - [https://mullvad.net](https://mullvad.net) // [https://xeovo.com](https://xeovo.com) // ikiside iyidir fiyatlarda benzer.<br />pazar- [https://xmrbazaar.com](https://xmrbazaar.com) // Birçok alanda birçok hizmet alabilirsin monero ile.

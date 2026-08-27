@@ -1,49 +1,16 @@
 ---
-title: "Honey"
+title: "Tehdit Modeli"
 description: ":p"
+icon: "palette"
 ---
 
 Selam, Enay ben. Yazıma başlarken bunun sadece kişisel gözlemlerim olduğu ve **bunları ispatlamaya çalışmayacağımı bilmenizi isterim**.
-
-Honeypot nedir sorusunu sormadan önce sizin zaten bunu bildiğinizi varsayıyorum, bilmiyorsanız google amcadan ufak bir bilgilendirme yapayım "Bal küpleri, bilgi sistemlerine yetkisiz erişim sağlamaya çalışan saldırganlar veya kullanıcılar hakkında istihbarat toplamak amacıyla oluşturulan tuzak sistemlerdir. Bu sistemler, meşru ağ hizmetlerini taklit ederek saldırganların ilgisini çeker ve faaliyetlerini ayrıntılı biçimde kaydeder."
-
-Honeypotlar ile günlük hayatta sıkça karşılaşıyoruz, çoğunu övüyoruz ve kullanıyoruz belki.\
-Yazımın genel akışı "Honetpotlar" değil ama gizlilik garantisi sunup o gizliliği hem teknik hemde politika beyanları ile bozanlar olacak.
-
-## BRAVE
-
-Yazının ilk başlığı brave olsun istedim, bunu bilmeyen kalmasın diye. 2021 yılınca bir cve recordu yayınlandı incelemek için [tıklayın](https://www.cve.org/CVERecord?id=CVE-2021-21323) bu cve recordu bize şunu diyor aslında: Tor penceresinde CNAME adblocking sırasında Tor proxysi dışına yönlendirilen DNS isteklerini tetiklemiş ve bu sırada ortaya çıkan domain ve gerçek IP bilgileri  DNS resolverlar tarafından görülebilir hale gelmiş. Aslında bu yapılanma ve yazılım bize şunu söyüyor. Senin ip bilgin, uğradığın siteler ve yaptığın işlemler zaten brave tarafından gözüküyordu. Bu yazdıklarımı abartı bulabilirsiniz, brave bunu hiçte abartı bulmuyor. Savunma mekanizması olarakta şu cevabı veriyor.
-
-<img
-  src="/images/photo_5904762871982263606_y.jpg"
-  alt="photo_5904762871982263606_y.jpg"
-  title="photo_5904762871982263606_y.jpg"
-  style={{ width:"50%" }}
-/>
-
-Adamın kendisi zaten diyorki "gizlilik kaygın varsa bizi değil tor browseri tercih et"
-
-Eğer tüm bunlara rağmen brave anonimlik sağlıyor diyorsan, bende derim ki buna anonimlik diyorsan, DNS’ten tut zamanlamaya kadar her şeyin izole olması gerekir derim. Ama şu özellik açıkken anonim, bu açıkken değil gibi cümleler duyuyorsam, güler geçerim. Anonimlik bir mod değil, bir tasarım kararıdır.
-
-## Honeypotları nasıl tespit ederim?
-
-Ben honeypot tespit ederken checklist’le başlamıyorum. Çünkü günümüzde en iyi honeypotlar zaten temiz görünenler. Benim yaklaşımım daha basit ama daha rahatsız edici sorular sormak üzerine.
-
-İlk baktığım şey şu oluyor: **Bu sistem benden ne istiyor?**\
-Gerçekten ihtiyacı olanı mı alıyor, yoksa ileride lazım olur diye fazladan veri mi topluyor? Bir servis sana bedava, hızlı ve güvenli”olduğunu söylüyorsa, burada durup bir nefes alıyorum. Çünkü güvenlikte bedava olan şey genelde üründür, kullanıcı değil.
-
-İkinci olarak, **log ve görünmezlik ilişkisine** bakıyorum.\
-Bir sistem “log tutmuyoruz” diyebilir, buna itirazım yok. Ama sistem mimarisi gereği bu logları tutabilecek konumdaysa, mesele log tutup tutmaması değildir. Mesele, **isterse tutabilir olmasıdır**. Honeypot dediğimiz şey tam olarak bu alanda yaşar.
-
-Son olarak şunu soruyorum: **Bu sistemi kim, neden ve hangi motivasyonla geliştirmiş?**\
-Para kazanma modeli, ortaklıklar, reklam, gizlilik... ve  GİZLİLİK kelimesinin pazarlamada ne kadar kullanıldığı… Bunların hepsi teknik olmayan ama çok şey anlatan detaylar. Çünkü kimse milyarlarca dolarlık bir ürünü sadece iyi niyetle ayakta tutmaz.
 
 ## Tehdit Modelini Belirle
 
 Anonimlik kısmında şu kısmı atlıyorsunuz, \*\*kime karşı anonim olmak istendiğini düşünüyormusunuz? \*\*Oysa anonimlik dinamik bir durum değil, **statik bir savunmadır**. Tehdit modeli olmadan anonimim oldum demek, kilidi olmayan bir kapıya güvendeyim yazısı asmaktan farksızdır. sadece kendi egonu tatmin edersin.
 
-Şunu sormadan anonimlikten bahsedemeyiz:\
-**Kimden saklanıyorsun?**
+Şunu sormadan anonimlikten bahsedemeyiz:<br />**Kimden saklanıyorsun?**
 
 Örneğin:
 
@@ -52,15 +19,11 @@ Rastgele bir kullanıcıya karşı IP gizlemek yeterli _olabilir_.
 - Bir şirketten saklanmak için metadata minimizasyonu gerekir.
 - Devlet seviyesinde bir tehditte ise ağ, zamanlama, korelasyon ve operasyonel hatalar devreye girer.
 
-Bu yüzden “X uygulaması anonim mi?” sorusu yanlış bir sorudur.\
-Doğru soru şudur:\
-**“X uygulaması, benim tehdit modelimde yeterli mi?”**
+Bu yüzden “X uygulaması anonim mi?” sorusu yanlış bir sorudur.<br />Doğru soru şudur:<br />**“X uygulaması, benim tehdit modelimde yeterli mi?”**
 
 Tehdit modeli belirlenmeden yapılan araç seçimleri genellikle bir **güvenlik fetişizmi**ne dönüşür. Araç kutsanır, mimari sorgulanmaz. Oysa aynı araç, farklı bir tehdit modelinde kullanıcıyı korumak bir yana, **yanlış güven hissi** yaratabilir. Daha da önemlisi, çoğu gizlilik aracı kullanıcıyı tehdit modelinin dışına çıkaracak varsayımlarla tasarlanır. Kullanıcının hata yapmayacağı, yanlış yapılandırma kullanmayacağı, zamanlama hatası oluşturmayacağı varsayılır. Gerçekte ise güvenlikte en zayıf halka her zaman **kullanıcıdır**.
 
-Bu yüzden anonimlik;\
-bir uygulama, bir ayar ya da bir mod değildir.\
-Anonimlik, **tehdit modeline göre tasarlanmış bir sistemler bütünü**dür.
+Bu yüzden anonimlik;<br />bir uygulama, bir ayar ya da bir mod değildir.<br />Anonimlik, **tehdit modeline göre tasarlanmış bir sistemler bütünü**dür.
 
 Tehdit modelin yoksa:
 
@@ -188,8 +151,7 @@ Bu sistemler size konfor vaat etmez, karşılığını sabırla ödediğiniz o m
 
 # Peki Ya Sen?
 
-Anonimliği sağlamak için tüm yazılımları, araç gereci ve sistemi kurdun, sen peki?\
-Psikolojik olarak ne durumdasın? Egon yüksekmi? Sevgiden beslenirmisin? Kaç kimliği aynı anda yönetebilirsin? Mutlumusun? Sabırlımısın? Motivasyonun ne? Yaşamaktan zevk alıyormusun, alıyorsan bu kadar uğraş niye? Bu disipline ayak uydurabilecek misin? Bunu alışkanlık, takıntı, obsesyon belki paranoya durumna getirmeyi göze aldınmı?
+Anonimliği sağlamak için tüm yazılımları, araç gereci ve sistemi kurdun, sen peki?<br />Psikolojik olarak ne durumdasın? Egon yüksekmi? Sevgiden beslenirmisin? Kaç kimliği aynı anda yönetebilirsin? Mutlumusun? Sabırlımısın? Motivasyonun ne? Yaşamaktan zevk alıyormusun, alıyorsan bu kadar uğraş niye? Bu disipline ayak uydurabilecek misin? Bunu alışkanlık, takıntı, obsesyon belki paranoya durumna getirmeyi göze aldınmı?
 
 En büyük zafiyet insanın kendisidir, gerçekten birgün hiç patlamayacağını mı düşünüyormusun?
 
