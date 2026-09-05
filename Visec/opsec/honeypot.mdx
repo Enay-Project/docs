@@ -141,13 +141,9 @@ Eğer sadece film izleyip sosyal medyada takılan biriysen Qubes senin için fan
 
 ### Whonix
 
-Tarayıcı seviyesindeki anonimlik, sisteminizdeki bir uygulamanın arkadan gerçek IP adresinizi sızdırmasıyla saniyeler içinde çöker. İşte Whonix, bu sızıntı ihtimalini mimari olarak imkansız kılan o yapıdır. Whonix, iki farklı sanal makineden (Gateway ve Workstation) oluşr. Siz işlerinizi Workstation üzerinde yaparsınız ama o makinenin internete dair hiçbir fikri yoktur dış dünyayı sadece bir iç ağdan ibaret görür. Tüm trafik, Gateway üzerinden geçmeye zorlanır. Bu ne anlama geliyor? Bilgisayarınıza en tehlikeli malware bile bulaşsa, sisteminizi root seviyesinde ele geçirse bile gerçek IP adresinizi asla öğrenemez. Çünkü o malware’in görebileceği tek şey Gateway’in ona sunduğu iç IP adresidir.
+Tarayıcı seviyesindeki anonimlik, sisteminizdeki bir uygulamanın arkadan gerçek IP adresinizi sızdırmasıyla saniyeler içinde çöker. İşte Whonix, bu sızıntı ihtimalini mimari olarak imkansız kılan o yapıdır. Whonix, iki farklı sanal makineden (Gateway ve Workstation) oluşr. Siz işlerinizi Workstation üzerinde yaparsınız ama o makinenin internete dair hiçbir fikri yoktur dış dünyayı sadece bir iç ağdan ibaret görür. Tüm trafik, Gateway üzerinden geçmeye zorlanır. Bu ne anlama geliyor? **Bilgisayarınıza en tehlikeli malware bile bulaşsa, sisteminizi root seviyesinde ele geçirse bile gerçek IP adresinizi asla öğrenemez.** Çünkü o malware’in görebileceği tek şey Gateway’in ona sunduğu iç IP adresidir. Bu benim iddiam değil kaynak: [https://www.whonix.org/wiki/About#Introduction](https://www.whonix.org/wiki/About#Introduction)
 
 **Stream Isolation** Whonix sadece IP saklamaz, aynı zamanda "Stream Isolation" dediğimiz o ince şıklığıda yapar. Tarayıcınız bir tor devresinden giderken, arka planda çalışan bir güncelleme veya başka bir araç tamamen farklı bir devre üzerinden dünyaya bağlanır. Bu, yazımın başında bahsettiğim o ağ korelasyonunu imkansız hale getirmez belki ama saldırganın işini kabusa çevirir.
-
-**Adli Bilişimcinin Çıkmazı** İşin en can alıcı noktasına, yani o sahadaki gerçek senaryoya dönelim. Adli bilişimci cihazı incelediğinde sadece luks şifreli bir diskle değil, aynı zamanda tertemiz bir ağ geçmişiyle karşılaşır. Çünkü Whonix, Workstation üzerinde hiçbir metadata bırakmamak üzerine tasarlanmıştır. Cihaz kapalı halde  ele geçirildiği için geriye sadece şifreli birer veri yığını kalmıştır. Adli bilişimci ağ kayıtlarına baktığında ise gördüğü tek şey, Tor ağının o anlamsız giriş düğümleridir. Ne bir hedef IP, ne bir domain, ne de bir kullanıcı davranışı... Anakart şifreli, disk şifreli, ağ ise tam bir kör düğüm.
-
-Bu sistemler size konfor vaat etmez, karşılığını sabırla ödediğiniz o mutlak anonimliği sunar.
 
 # Peki Ya Sen?
 
