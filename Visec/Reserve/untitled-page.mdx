@@ -1,6 +1,7 @@
 ---
 title: "Bir Malware Çalıştırıldığında Windows'ta Gerçekte Ne Oluyor?"
 icon: "microchip"
+description: "PE loader'a, process nesnelerinden C2 trafiğine kadar Windows içindeki bütün yürütme zinciri."
 ---
 
 Bir `.exe` dosyasına çift tıklamak, kullanıcı açısından tek bir harekettir. Windows açısından ise dosya çözümlemesi, yetki denetimi, process ve thread nesnelerinin oluşturulması, executable image'ın sanal adres alanına eşlenmesi, DLL bağımlılıklarının çözülmesi, sayfa korumalarının uygulanması ve ilk instruction'ın CPu'ya teslim edilmesi demektir. Malware bütün bunların üzerine dosya, registry, process ve ağ davranışlarını ekler.
