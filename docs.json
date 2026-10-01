@@ -97,7 +97,7 @@
             "group": "CVE-2025-12059",
             "pages": [
               "CVE/1",
-              "title-akinsoft-wolvox-kontrol-panel-tcp-3055-unauthenticated-database-credential-disclosure-date-2026-10-01-description-wolvox-kontrol-panel-in-tcp-3055-login-akisinda-basarisiz-kimlik-dogrulamasi"
+              "CVE-2026-92555"
             ]
           }
         ]
