@@ -5,8 +5,7 @@ description: "cbmpc "
 
 Coinbase’in çok taraflı ECDSA (MPC ECDSA) uygulaması olan [**cb-mpc**](https://github.com/coinbase/cb-mpc) üzerinde yaptığım analiz sırasında, imza üretim aşamasında kritik bir tasarım zafiyeti tespit ettim. Bu zafiyet, saldırganın **hiçbir özel anahtara sahip olmadan** ve diğer MPC katılımcılarının iş birliğine ihtiyaç duymadan **geçerli görünen ECDSA imzaları oluşturmasına** izin veriyor.
 
-Sorunun temel nedeni:\
-**İmzanın r, s ve message hash (msg) değerleri, final imza oluşturulurken hiçbir bütünlük kontrolü yapılmadan kabul ediliyor.**
+Sorunun temel nedeni:<br />**İmzanın r, s ve message hash (msg) değerleri, final imza oluşturulurken hiçbir bütünlük kontrolü yapılmadan kabul ediliyor.**
 
 Bu durum, tek bir kötü niyetli MPC katılımcısının veya belleğe erişim sağlayabilen bir saldırganın, protokolü tamamen atlayarak **sahte imza üretmesi** ile sonuçlanıyor.
 
@@ -26,21 +25,17 @@ Zafiyet iki temel tasarım hatasından kaynaklanıyor:
 
 Bu, kriptografik açıdan şu anlama gelir:
 
-> r ve s sahte olabilir.\
-> msg sahte olabilir.\
-> Sistem yine de bunları gerçek imza olarak kabul eder.
+> r ve s sahte olabilir.<br />msg sahte olabilir.<br />Sistem yine de bunları gerçek imza olarak kabul eder.
 
 ---
 
 ### **B) DER kodlama + verify() çağrısı tek güvenlik katmanı**
 
-Final imza `.to_der()` ile kodlandıktan sonra OpenSSL tabanlı `verify()` çalıştırılıyor.\
-Ancak sistem, verify() fonksiyonunun çıktısını **tek güvenilir kaynak** olarak görüyor.
+Final imza `.to_der()` ile kodlandıktan sonra OpenSSL tabanlı `verify()` çalıştırılıyor.<br />Ancak sistem, verify() fonksiyonunun çıktısını **tek güvenilir kaynak** olarak görüyor.
 
 Bu, tasarımda şöyle bir açık oluşturuyor:
 
-> Eğer bir attacker verify()’i manipüle ederse\
-> sistem kontrolü tamamen kaybeder.
+> Eğer bir attacker verify()’i manipüle ederse<br />sistem kontrolü tamamen kaybeder.
 
 MPC protokolünde asla tek noktadan güven olmamalıdır.
 
@@ -77,7 +72,7 @@ set variable r = bn_t::from_hex("<attack-controlled-scalar>")
 set variable s = bn_t::from_hex("<attack-controlled-scalar>")
 ```
 
-![Ekran_g_r_nt_s__2025-07-22_102807.png](/images/Ekran_g_r_nt_s__2025-07-22_102807.png)
+![Ekran_g_r_nt_s\_\_2025-07-22_102807.png](/images/Ekran_g_r_nt_s__2025-07-22_102807.png)
 
 > GDB üzerinde `cb::mpc::ecdsampc::sign` fonksiyonuna yerleştirilen breakpoint. Bu noktada MPC imza üretimi durdurularak r, s ve msg değerlerine saldırgan kontrollü enjeksiyon yapılmasına olanak sağlar.
 
@@ -107,7 +102,7 @@ end
 
 #### **7. Testi çalıştır**
 
-![Ekran_g_r_nt_s__2025-07-22_102755.png](/images/Ekran_g_r_nt_s__2025-07-22_102755.png)
+![Ekran_g_r_nt_s\_\_2025-07-22_102755.png](/images/Ekran_g_r_nt_s__2025-07-22_102755.png)
 
 ```bash
 continue
@@ -132,14 +127,11 @@ Sahte imza sistem tarafından **geçerli** kabul edildi.
 
 Bu zafiyet, ECDSA’nın temel güvenlik varsayımlarını kırar. Normalde:
 
-- r, s ve msg değerlerinin\
-  _gerçek kriptografik hesaplardan çıkması_ gerekir.
+- r, s ve msg değerlerinin<br />_gerçek kriptografik hesaplardan çıkması_ gerekir.
 
 Ancak bu zafiyette:
 
-> Bir saldırgan bu üç değeri hafızaya enjekte ederek,\
-> _hiçbir MPC protokol adımı gerçekleşmeden_\
-> imza üretebiliyor.
+> Bir saldırgan bu üç değeri hafızaya enjekte ederek,<br />_hiçbir MPC protokol adımı gerçekleşmeden_<br />imza üretebiliyor.
 
 Bu şu anlamlara gelir:
 
@@ -153,8 +145,7 @@ Ama zafiyet yüzünden:
 
 ### **B) Threshold modeli çöküyor**
 
-MPC imzası normalde **t-of-n** modelinde çalışır.\
-Bu zafiyet:
+MPC imzası normalde **t-of-n** modelinde çalışır.<br />Bu zafiyet:
 
 > Tek bir MPC node’unun tüm sistem adına imza atabilmesini sağlıyor.
 
