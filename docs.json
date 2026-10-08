@@ -93,7 +93,7 @@
         "tab": "CVE",
         "groups": [
           {
-            "group": "CVE-2025-12059",
+            "group": "CVE",
             "pages": [
               "CVE/1",
               "CVE-2026-92555"
