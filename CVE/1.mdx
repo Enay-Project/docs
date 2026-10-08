@@ -9,6 +9,16 @@ Finder: M. Enes Aydın
 
 [https://www.cve.org/cverecord?id=CVE-2025-12059](https://www.cve.org/cverecord?id=CVE-2025-12059)
 
+<Note>
+  **Neden 538?**
+
+  Sistem ulaşmamam gereken jnlp dosyalarını bana servis ediyordu ve içerisinden jar dosyalarını çekip içeriğini görmem ile admin apilerine erişmiştim.
+
+  **Neden Resmiyette 502 Değil?**
+
+  Zafiyeti 2025 Temmuz da buldum, zafiyeti 2025 ekimde bildirdim. Zafiyet direk kapatıldı ve bildirdiğim şekilde çok eksik kanıtlar sunmuştum. Bu sebeple 502 olması reddedildi. 
+</Note>
+
 Uygulama, JNLP dosyasında yer alan `DOCUMENT_URI` parametresini istemci sunucu akışında kullanıyor ve bu URI/uç nokta üzerinden dönen istek gövdesini HTTP metodu ne olursa olsun (HEAD dahil) okuyup `ObjectInputStream.readObject()` ile deserialize ediyor. Sonuç olarak saldırgan, kimlik doğrulaması olmadan bile **serialized** bir gövdeyi `HEAD` isteğiyle taşıyıp sunucu tarafında gadget zincirini tetikleyebiliyor ve RCE elde edebiliyor. Bu davranış, HTTP standardında HEAD yanıt gövdesinin olmamasıyla karıştırılabiliyor ancak **istek** gövdesi uygulama katmanında yanlış tasarımla okunuyorsa, HEAD de dahil olmak üzere metot agnostik bir akış ortaya çıkıyor ve deserialize zinciri aynı şekilde çalışıyor.
 
 Zincirin pratik akışı şöyle gerçekleşiyor: İstemci tarafından sunulan JNLP, `DOCUMENT_URI`’yi uygulama başlatma parametresi olarak içeriyor; bu parametre sunucu tarafındaki web bileşenine aktarılıyor ve burada ilgili handler/servlet, isteğin gövdesini **metot kontrolü yapmadan** `request.getInputStream()` ile tüketiyor. Ardından bu akış bir servis katmanına devredilip `new ObjectInputStream(in).readObject()` çağrısına ulaşıyor. Deserialize sırasında sınıf yükleme ve `readObject()`giriş noktalarına bağlı bir **gadget zinciri** çalıştırılarak komut yürütme sağlanıyor. Bu nedenle saldırgan, `ysoserial` ile ürettiği bir `payload.ser` dosyasını `Content-Type: application/x-java-serialized-object` başlığıyla **HEAD** isteği gövdesine koyduğunda, uç nokta `POST`/`PUT` yerine `HEAD` ile çağrılsa bile, uygulamanın **metot-agnostik gövde okuması** yüzünden içerik deserialize edilip komut çalıştırılabiliyor. **Küçük** boyutta yapılan `HEAD` çağrıları `200 OK` döndürüp JNLP sunabiliyor, bu, uç noktanın HEAD’i işlediğini ve gövdeyi en azından kısmen tükettiğini gösteriyor.
